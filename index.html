@@ -65,8 +65,6 @@ th{color:var(--mute);font-weight:500}
 .pane{display:none}.pane.show{display:block}
 .lrow{display:grid;grid-template-columns:1.2fr 1.2fr .8fr .8fr auto;gap:6px;margin-bottom:6px}
 @media (max-width:560px){.lrow{grid-template-columns:1fr 1fr}}
-.xrow{display:grid;grid-template-columns:1.3fr .8fr 1.3fr auto;gap:6px;margin-bottom:6px}
-@media (max-width:560px){.xrow{grid-template-columns:1fr 1fr}}
 .xg{border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:10px}
 .orow{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:6px;margin-bottom:6px}
 @media (max-width:560px){.orow{grid-template-columns:1fr 1fr}}
@@ -107,7 +105,7 @@ th{color:var(--mute);font-weight:500}
 <div id="demo"></div>
 <div id="warn"></div>
 <div class="grid" id="kpis"></div>
-<div class="tabs" id="tabs"><button data-tab="dash">لوحة التحكم</button><button data-tab="ops">العمليات</button><button data-tab="stock">المخزون والجرد</button><button data-tab="cap">رأس المال</button><button data-tab="sort">الفرز</button><button data-tab="ct">المصانع والعملاء</button><button data-tab="exp">مصروفات الرحلات</button><button data-tab="rep">التقرير والحسابات</button><button data-tab="set">الأصناف والنسخ الاحتياطي</button></div>
+<div class="tabs" id="tabs"><button data-tab="dash">لوحة التحكم</button><button data-tab="ops">العمليات</button><button data-tab="stock">المخزون والجرد</button><button data-tab="cap">رأس المال</button><button data-tab="sort">الفرز</button><button data-tab="ct">المصانع والعملاء</button><button data-tab="rep">التقرير والحسابات</button><button data-tab="set">الأصناف والنسخ الاحتياطي</button></div>
 
 <div class="pane" data-p="dash" id="dash"></div>
 
@@ -120,13 +118,12 @@ th{color:var(--mute);font-weight:500}
     <div><label for="ty" id="tylbl">صنف المكرونة</label><select id="ty" required></select></div>
     <div id="gq"><label for="q">الكمية (طن)</label><input id="q" type="number" step="0.001" min="0.001" required></div>
     <div id="gp"><label for="pr">سعر الطن (ج.م)</label><input id="pr" type="number" step="0.01" min="0" required></div>
-    <div><label for="tr">النقل (ج.م) — المصروفات تتضاف تلقائي</label><input id="tr" type="number" step="0.01" min="0" value="0"></div>
+    <div style="grid-column:1/-1;display:grid;grid-template-columns:minmax(140px,1fr) minmax(200px,2fr);gap:10px;align-items:start"><div><label for="tr">المصروفات (ج.م) — اكتب الإجمالي كله</label><input id="tr" type="number" step="0.01" min="0" value="0"></div><div><label for="trn">ملاحظات المصروفات — كانت إيه؟</label><textarea id="trn" rows="2" style="resize:vertical" placeholder="مثلًا: تحميل 200 + إكرامية 100 + مواصلات 300"></textarea></div></div>
     <div><label for="dc">الخصم (ج.م) — بيتخصم من إجمالي العملية</label><input id="dc" type="number" step="0.01" min="0" value="0"></div>
     <div><label for="pd">المدفوع (ج.م)</label><input id="pd" type="number" step="0.01" min="0" placeholder="فاضي = كامل"></div>
     <div><label for="pm">طريقة الدفع</label><select id="pm"><option value="cash">نقدي</option><option value="insta">انستاباي</option><option value="vf">فودافون كاش</option><option value="bank">حساب بنكي</option><option value="credit">آجل (لم يُدفع)</option></select></div>
     <div><label for="n">ملاحظة</label><input id="n"></div>
     <div id="lines" hidden style="grid-column:1/-1"><label>تفاصيل البيع: سجّل كل نوع طلع من الشحنة بكميته وسعره وطريقة بيعه</label><div id="lr"></div><button type="button" class="btn ghost" id="la">+ نوع آخر</button><datalist id="gl"></datalist><datalist id="cl"></datalist></div>
-    <div id="xin" style="grid-column:1/-1"><label>مصروفات الرحلة دي (تحميل، إكرامية، مواصلات...) — اختياري، وبتتسجل مع العملية وتظهر في تبويب مصروفات الرحلات</label><div id="xr"></div><button type="button" class="btn ghost" id="xa2">+ مصروف</button></div>
     <div class="tot" id="tot"></div>
     <div class="err" id="err" role="alert"></div>
     <div style="display:flex;gap:6px"><button class="btn" type="submit" id="fs2">حفظ العملية</button><button class="btn ghost" type="button" id="ecn" hidden>إلغاء التعديل</button></div>
@@ -144,7 +141,7 @@ th{color:var(--mute);font-weight:500}
   <h2>الحسابات الشاملة</h2>
   <div class="grid" id="acc"></div>
   <div class="scroll"><table style="min-width:0"><thead><tr><th>طريقة الدفع</th><th>وارد (من العملاء)</th><th>صادر (للمصانع)</th><th>الصافي</th></tr></thead><tbody id="mtb"></tbody></table></div>
-  <p class="sub">مصاريف النقل ومصروفات الرحلات غير موزعة على طرق الدفع.</p>
+  <p class="sub">النقل والمصروفات غير موزعة على طرق الدفع.</p>
 </div>
 
 <div class="card pane" data-p="rep">
@@ -239,10 +236,10 @@ th{color:var(--mute);font-weight:500}
 
 <div class="card pane" data-p="cap">
   <h2>رأس المال</h2>
-  <p class="sub" style="margin-bottom:8px">سجّل رأس المال اللي بتشتغل بيه، وزوّده في أي وقت (إضافة) أو اسحب منه. النظام بيحسب عليه المشتريات والمبيعات والمصروفات ويطلّع السيولة المتاحة، وبيظهر ملخصه في أعلى الصفحة.</p>
+  <p class="sub" style="margin-bottom:8px">سجّل رأس المال اللي بتشتغل بيه، وزوّده في أي وقت (إضافة) أو اسحب منه. النظام بيحسب عليه المشتريات والمبيعات والمصروفات ويطلّع السيولة المتاحة، وبيظهر ملخصه في أعلى الصفحة. الأرباح والخسائر بتتضاف أو بتتخصم من رأس المال تلقائي، والسحب الشخصي بيخصم منه بس من غير ما يأثر على الأرباح أو الحسابات.</p>
   <form class="g" id="kf">
     <div><label for="kt">النوع</label><select id="kt"><option value="in">إضافة / زيادة رأس المال</option><option value="out">سحب شخصي (أخويا، البيت...) — خارج المصروفات والأرباح</option></select></div>
-    <div id="kcw" hidden style="grid-column:1/-1"><label for="kc">لمين / الغرض — السحب الشخصي مش بيدخل في مصروفات الرحلات ولا في تكلفة العمليات ولا في الأرباح، بيخصم من رأس المال والسيولة بس</label><div id="kcats"></div><input id="kc" list="kcl" placeholder="اكتب الجهة أو اضغط على زر بالأعلى (أخويا، البيت...)"><datalist id="kcl"></datalist></div>
+    <div id="kcw" hidden style="grid-column:1/-1"><label for="kc">لمين / الغرض — السحب الشخصي مش بيدخل في مصروفات العمليات ولا في تكلفة العمليات ولا في الأرباح، بيخصم من رأس المال والسيولة بس</label><div id="kcats"></div><input id="kc" list="kcl" placeholder="اكتب الجهة أو اضغط على زر بالأعلى (أخويا، البيت...)"><datalist id="kcl"></datalist></div>
     <div><label for="kd">التاريخ</label><input id="kd" type="date" required></div>
     <div><label for="ka">المبلغ (ج.م)</label><input id="ka" type="number" step="0.01" min="0.01" required></div>
     <div><label for="kn">ملاحظة</label><input id="kn" placeholder="رأس مال افتتاحي، زيادة، شريك..."></div>
@@ -270,26 +267,7 @@ th{color:var(--mute);font-weight:500}
 </div>
 <div class="card pane" data-p="cap">
   <h2>سجل رأس المال</h2>
-  <div class="scroll"><table style="min-width:520px"><thead><tr><th>التاريخ</th><th>النوع / الجهة</th><th>المبلغ</th><th>رأس المال بعدها</th><th>ملاحظة</th><th></th></tr></thead><tbody id="ktb"></tbody></table></div>
-</div>
-
-<div class="card pane" data-p="exp">
-  <h2>مصروفات الرحلات</h2>
-  <p class="sub" style="margin-bottom:8px">اختار الرحلة (عملية شراء أو بيع) وسجّل مصروفاتها — كل رحلة مصروفاتها لوحدها ومش بتتخلط بغيرها، وبتتحسب تلقائي في تكلفة العملية. تقدر تعدّل أو تحذف أي مصروف، وتضيف أو تحذف أنواع المصروفات من الأزرار.</p>
-  <div id="cats"></div>
-  <form class="g" id="xf">
-    <div style="grid-column:1/-1"><label for="xt">الرحلة (العملية)</label><select id="xt"></select></div>
-    <div><label for="xd">التاريخ</label><input id="xd" type="date" required></div>
-    <div><label for="xc">نوع المصروف</label><input id="xc" list="xcl" required placeholder="اكتب أو اضغط على زر بالأعلى"><datalist id="xcl"></datalist></div>
-    <div><label for="xa">المبلغ (ج.م)</label><input id="xa" type="number" step="0.01" min="0.01" required></div>
-    <div><label for="xp">المصنع / العميل</label><input id="xp" list="parties2" placeholder="يتملي تلقائي مع الرحلة"><datalist id="parties2"></datalist></div>
-    <div><label for="xn">ملاحظة</label><input id="xn"></div>
-    <div style="display:flex;gap:6px"><button class="btn" type="submit" id="xs">حفظ المصروف</button><button class="btn ghost" type="button" id="xcn" hidden>إلغاء التعديل</button></div>
-    <small class="sub" style="grid-column:1/-1">لو سجّلت مصروف بدون رحلة (اسم مصنع/عميل + تاريخ) قبل تسجيل العملية، هيتربط بالعملية تلقائي أول ما تسجلها بنفس الاسم والتاريخ.</small>
-  </form>
-  <div class="bar" style="margin-top:12px"><select id="xfk" aria-label="فلتر الرحلة"></select><select id="xft" aria-label="فلتر النوع"></select><input id="xfm" type="month" aria-label="الشهر"></div>
-  <div class="grid" id="xsum"></div>
-  <div id="xlist"></div>
+  <div class="scroll"><table style="min-width:520px"><thead><tr><th>التاريخ</th><th>النوع / الجهة</th><th>المبلغ</th><th>رأس المال المسجّل بعدها</th><th>ملاحظة</th><th></th></tr></thead><tbody id="ktb"></tbody></table></div>
 </div>
 
 <div class="card pane" data-p="set">
@@ -303,7 +281,7 @@ th{color:var(--mute);font-weight:500}
 <div id="inv"></div>
 
 <script>
-const KEY='pasta_waste_v2';let S={types:[],tx:[]},kind='buy',xedit=null,tedit=null,ADJ=0,LR=[];
+const KEY='pasta_waste_v2';let S={types:[],tx:[]},kind='buy',tedit=null,ADJ=0,LR=[];
 try{S=JSON.parse(localStorage.getItem(KEY))||S}catch(e){}
 norm();
 if(!S.types.length){S.types=['خام','مكسر','مطحون'].map((n,i)=>({id:i+1,name:n}))}
@@ -314,7 +292,12 @@ const today=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOff
 function norm(){['ex','sr','ct','pay','adj','tx','cap'].forEach(k=>S[k]=S[k]||[]);
   const seen={};S.seq=Math.max(S.seq||0,...S.tx.map(t=>t.no||0));
   S.tx.forEach(t=>{if(t.no&&t.grp)seen['g'+t.grp]=t.no});
-  [...S.tx].sort((a,b)=>a.date.localeCompare(b.date)||a.id-b.id).forEach(t=>{if(t.no)return;const k=t.grp?'g'+t.grp:null;if(k&&seen[k]){t.no=seen[k];return}t.no=++S.seq;if(k)seen[k]=t.no})}
+  [...S.tx].sort((a,b)=>a.date.localeCompare(b.date)||a.id-b.id).forEach(t=>{if(t.no)return;const k=t.grp?'g'+t.grp:null;if(k&&seen[k]){t.no=seen[k];return}t.no=++S.seq;if(k)seen[k]=t.no});
+  const T=[...S.tx].sort((a,b)=>a.id-b.id),keep=[];
+  S.ex.forEach(x=>{let t=null;if(x.trip)t=T.find(t=>t.id===x.trip);else if(x.trip===undefined&&x.party)t=T.find(t=>t.party===x.party&&t.date===x.date);
+    if(!t){keep.push(x);return}
+    t.tr=(t.tr||0)+x.amt;t.trn=[t.trn,(x.cat||'مصروف')+' '+Math.round(x.amt*100)/100+(x.note?' ('+x.note+')':'')].filter(Boolean).join('، ')});
+  S.ex=keep}
 function safe(fn){const snap=JSON.stringify(S),b=calc().neg.length;fn();const C=calc();
   if(C.neg.length>b){S=JSON.parse(snap);const n=C.neg[0];return 'العملية دي هتخلي رصيد '+tn(n.tid)+' بالسالب ('+fmt(n.q,3)+' طن) بتاريخ '+n.date+' — راجع الكميات أو التواريخ.'}return''}
 function csv(n,rows){const t='\ufeff'+rows.map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\r\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv;charset=utf-8'}));a.download=n;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
@@ -359,18 +342,6 @@ function trips(){const xe={},lk=new Set(),xl={},xd={},T=[...S.tx].sort((a,b)=>a.
   S.ex.forEach(x=>{if(x.trip===undefined){const t=x.party?T.find(t=>t.party===x.party&&t.date===x.date):null;x.trip=t?t.id:0}});
   S.ex.forEach(x=>{const t=x.trip?T.find(t=>t.id===x.trip):null;if(t){xe[t.id]=(xe[t.id]||0)+x.amt;(xd[t.id]=xd[t.id]||[]).push(x);lk.add(x.id);xl[x.id]=t.id}});
   return{xe,lk,xl,xd}}
-function tripList(){const C=calc(),seen=new Set(),L=[];
-  sorted().forEach(t=>{const k=t.grp?'g'+t.grp:'t'+t.id;if(seen.has(k))return;seen.add(k);const G=t.grp?S.tx.filter(x=>x.grp===t.grp):[t];
-    L.push({id:t.id,kind:t.kind,date:t.date,party:t.party,n:C.no[t.id],q:G.reduce((a,x)=>a+x.qty,0),tr:G.reduce((a,x)=>a+x.tr,0)})});return L}
-const tripLbl=r=>'#'+r.n+' — '+(r.kind==='buy'?'شراء':'بيع')+' — '+r.party+' — '+r.date+' — '+fmt(r.q,3)+' طن';
-const tripOpts=(L,first)=>'<option value="">'+first+'</option>'+[...L].reverse().map(r=>`<option value="${r.id}">${esc(tripLbl(r))}</option>`).join('');
-const xcats=()=>S.xcats||(S.xcats=CATS.slice());
-const noteCat=c=>{const L=xcats();if(c&&!L.includes(c))L.push(c)};
-function xrow(){const d=document.createElement('div');d.className='xrow';d.innerHTML='<input class="xc" list="xcl" placeholder="نوع المصروف (تحميل، إكرامية...)" aria-label="نوع المصروف"><input class="xm" type="number" step="0.01" min="0" placeholder="المبلغ" aria-label="المبلغ"><input class="xt" placeholder="ملاحظة" aria-label="ملاحظة"><button type="button" class="x" aria-label="حذف المصروف">✕</button>';$('xr').appendChild(d)}
-const xrows=()=>[...document.querySelectorAll('#xr .xrow')].map(r=>({cat:r.querySelector('.xc').value.trim(),amt:+r.querySelector('.xm').value||0,note:r.querySelector('.xt').value.trim()})).filter(x=>x.amt>0);
-function xtot(){const p=$('p').value.trim(),d=$('d').value;return xrows().reduce((a,x)=>a+x.amt,0)+S.ex.filter(x=>!x.trip&&p&&x.party===p&&x.date===d).reduce((a,x)=>a+x.amt,0)}
-function attachX(rep,party,date){S.ex.forEach(x=>{if(!x.trip&&x.party===party&&x.date===date)x.trip=rep});
-  xrows().forEach((x,i)=>{const c=x.cat||'أخرى';S.ex.push({id:uid(),date,cat:c,amt:x.amt,party,note:x.note,trip:rep});noteCat(c)});$('xr').innerHTML=''}
 
 function render(){
   const C0=calc(),{st,pf,no,profit,xe,lk,ca,xd,adj,neg,wst}=C0;ADJ=adj;
@@ -385,7 +356,7 @@ function render(){
   const bv=su(B,t=>V(t)),sv=su(L,t=>V(t)),bq=su(B,t=>t.qty),sq=su(L,t=>t.qty);
   const pyb=su(S.pay.filter(x=>x.kind==='buy'),x=>x.amt),pys=su(S.pay.filter(x=>x.kind==='sell'),x=>x.amt),owe=bv-su(B,t=>t.paid)-pyb,due=sv-su(L,t=>t.paid)-pys,exT=su(S.ex,x=>x.amt),exU=su(S.ex.filter(x=>!lk.has(x.id)),x=>x.amt);
   $('kpis').innerHTML=[['إجمالي المشتريات',fmt(bq,3)+' طن',M(bv),''],['إجمالي المبيعات',fmt(sq,3)+' طن',M(sv),''],
-   ['مصاريف النقل',M(su(S.tx,t=>t.tr)),'',''],['ربح المبيعات',M(profit),'',profit>=0?'pos':'neg'],['مصروفات الرحلات',M(exT),'','neg'],['الهالك (قيمته بالتكلفة)',M(-wst),'','neg'],['فروقات الجرد',M(adj-wst),'',adj-wst>=0?'pos':'neg'],['الصافي بعد المصروفات',M(profit-exU+adj),'مصروفات غير مرتبطة بعملية: '+M(exU),profit-exU+adj>=0?'pos':'neg'],
+   ['النقل والمصروفات',M(su(S.tx,t=>t.tr)),'',''],['ربح المبيعات',M(profit),'',profit>=0?'pos':'neg'],...(exT>0.005?[['مصروفات قديمة غير مرتبطة',M(exT),'','neg']]:[]),['الهالك (قيمته بالتكلفة)',M(-wst),'','neg'],['فروقات الجرد',M(adj-wst),'',adj-wst>=0?'pos':'neg'],['الصافي بعد المصروفات',M(profit-exU+adj),'مصروفات غير مرتبطة بعملية: '+M(exU),profit-exU+adj>=0?'pos':'neg'],
    ['علينا للمصانع',M(owe),'','neg'],['لنا عند العملاء',M(due),'','pos']]
    .map(k=>`<div class="k"><small>${k[0]}</small><b class="${k[3]}">${k[1]}</b>${k[2]?`<small>${k[2]}</small>`:''}</div>`).join('');
 
@@ -400,26 +371,26 @@ function render(){
    :'<tr><td colspan="7" class="empty">لا توجد بيانات. سجّل أول عملية شراء من النموذج.</td></tr>';
 
   const k=$('fk').value,ft=+$('ft').value,s=$('fs').value.trim(),m=$('fm').value;
-  const rows=LR=sorted().reverse().filter(t=>(!k||t.kind===k)&&(!ft||t.tid===ft)&&(!m||t.date.startsWith(m))&&(!s||(t.party+' '+(t.note||'')).includes(s)));
+  const rows=LR=sorted().reverse().filter(t=>(!k||t.kind===k)&&(!ft||t.tid===ft)&&(!m||t.date.startsWith(m))&&(!s||(t.party+' '+(t.note||'')+' '+(t.trn||'')).includes(s)));
   const bo=k==='buy';
   $('th').innerHTML='<tr><th>رقم</th><th>التاريخ</th><th>النوع</th><th>الاسم</th><th>الصنف</th><th>الكمية</th><th>سعر الطن</th>'+(bo?'':'<th>سعر الشراء للطن</th>')+'<th>نقل ومصروفات</th><th>الإجمالي</th><th>الإجمالي بالنقل والمصروفات</th><th>المدفوع</th><th>المتبقي</th><th>طريقة الدفع</th>'+(bo?'':'<th>الربح</th>')+'<th></th></tr>';
   $('tb').innerHTML=rows.length?rows.map(t=>{const v=V(t),p=pf[t.id],tc=t.tr+(xe[t.id]||0),rem=Math.round((v-t.paid)*100)/100;
-    return`<tr><td>${no[t.id]}</td><td>${t.date}</td><td><span class="tag ${t.kind==='buy'?'b':'s'}">${t.kind==='buy'?'شراء':'بيع'}</span></td><td>${esc(t.party)}</td><td>${esc(t.grade||tn(t.tid))}${t.ch?'<br><small>'+esc(t.ch)+'</small>':''}</td><td>${fmt(t.qty,3)}</td><td>${M(t.price)}</td>${bo?'':`<td>${t.kind==='sell'?M(ca[t.id]||0):'—'}</td>`}<td${(xd[t.id]||[]).length?` title="${esc((xd[t.id]).map(x=>x.cat+': '+fmt(x.amt)).join('\n'))}"`:''}>${M(tc)}${(xd[t.id]||[]).length?' <small class="sub">('+xd[t.id].length+' مصروف)</small>':''}</td><td>${M(v)}${t.disc>0?' <small class="sub">(بعد خصم '+fmt(t.disc)+')</small>':''}</td><td>${t.kind==='buy'?M(v+tc):M(v-tc)+' <small class="sub">صافي</small>'}</td><td>${M(t.paid)}</td><td class="${rem>0?'neg':''}">${rem>0?M(rem):'مسدّد'}</td><td>${PM[pmOf(t)]}</td>${bo?'':`<td class="${p>=0?'pos':'neg'}">${p===undefined?'—':M(p)}</td>`}<td><button class="x" data-inv="${t.id}" title="طباعة فاتورة" aria-label="طباعة فاتورة">🖨</button><button class="x" data-ted="${t.id}" title="تعديل" aria-label="تعديل العملية">✎</button><button class="x" data-del="${t.id}" aria-label="حذف العملية">✕</button></td></tr>`}).join('')
+    return`<tr><td>${no[t.id]}</td><td>${t.date}</td><td><span class="tag ${t.kind==='buy'?'b':'s'}">${t.kind==='buy'?'شراء':'بيع'}</span></td><td>${esc(t.party)}</td><td>${esc(t.grade||tn(t.tid))}${t.ch?'<br><small>'+esc(t.ch)+'</small>':''}</td><td>${fmt(t.qty,3)}</td><td>${M(t.price)}</td>${bo?'':`<td>${t.kind==='sell'?M(ca[t.id]||0):'—'}</td>`}<td${(xd[t.id]||[]).length?` title="${esc((xd[t.id]).map(x=>x.cat+': '+fmt(x.amt)).join('\n'))}"`:''}>${M(tc)}${(xd[t.id]||[]).length?' <small class="sub">('+xd[t.id].length+' مصروف)</small>':''}${t.trn?'<br><small class="sub" style="white-space:normal">'+esc(t.trn)+'</small>':''}</td><td>${M(v)}${t.disc>0?' <small class="sub">(بعد خصم '+fmt(t.disc)+')</small>':''}</td><td>${t.kind==='buy'?M(v+tc):M(v-tc)+' <small class="sub">صافي</small>'}</td><td>${M(t.paid)}</td><td class="${rem>0?'neg':''}">${rem>0?M(rem):'مسدّد'}</td><td>${PM[pmOf(t)]}</td>${bo?'':`<td class="${p>=0?'pos':'neg'}">${p===undefined?'—':M(p)}</td>`}<td><button class="x" data-inv="${t.id}" title="طباعة فاتورة" aria-label="طباعة فاتورة">🖨</button><button class="x" data-ted="${t.id}" title="تعديل" aria-label="تعديل العملية">✎</button><button class="x" data-del="${t.id}" aria-label="حذف العملية">✕</button></td></tr>`}).join('')
    :'<tr><td colspan="'+(bo?13:15)+'" class="empty">لا توجد عمليات مطابقة.</td></tr>';
-  renderX();renderC();renderA(profit,exT,exU);renderS(C0);renderK(F);demoUI();dbRender(C0);
+  renderRest();renderC();renderA(profit,exT,exU);renderS(C0);renderK(F);demoUI();dbRender(C0);
 }
 
 document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{kind=b.dataset.t;
   document.querySelectorAll('.seg button').forEach(x=>x.classList.toggle('on',x===b));
   $('plbl').textContent=kind==='buy'?'اسم المصنع':'اسم العميل';$('err').textContent=''});
-const upd=()=>{if(kind==='sell')return lupd();const g=(+$('q').value||0)*(+$('pr').value||0),dc=+$('dc').value||0,v=g-dc,tr=+$('tr').value||0,xs=xtot();$('tot').textContent='الإجمالي: '+M(g)+(dc?' — خصم: '+M(dc)+' — بعد الخصم: '+M(v):'')+' — نقل: '+M(tr)+' — مصروفات الرحلة: '+M(xs)+' — الإجمالي بالنقل والمصروفات: '+M(v+tr+xs)};
-['q','pr','tr','p','d','dc'].forEach(i=>$(i).oninput=upd);$('xr').oninput=upd;$('xr').onclick=e=>{if(e.target.classList.contains('x')){e.target.parentNode.remove();upd()}};$('xa2').onclick=()=>{xrow();upd()};upd();
+const upd=()=>{if(kind==='sell')return lupd();const g=(+$('q').value||0)*(+$('pr').value||0),dc=+$('dc').value||0,v=g-dc,tr=+$('tr').value||0;$('tot').textContent='الإجمالي: '+M(g)+(dc?' — خصم: '+M(dc)+' — بعد الخصم: '+M(v):'')+' — النقل والمصروفات: '+M(tr)+' — الإجمالي بالنقل والمصروفات: '+M(v+tr)};
+['q','pr','tr','p','d','dc'].forEach(i=>$(i).oninput=upd);upd();
 
 $('f').onsubmit=e=>{e.preventDefault();if(kind==='sell')return sellSubmit();
   const qty=+$('q').value,price=+$('pr').value,tid=+$('ty').value,tr=+$('tr').value||0,disc=+$('dc').value||0;if(disc<0||disc>qty*price)return $('err').textContent='الخصم لازم يكون بين صفر وإجمالي العملية ('+M(qty*price)+').';const v=qty*price-disc,pd=pdv(v),party=$('p').value.trim(),date=$('d').value,old=tedit?S.tx.find(t=>t.id===tedit.rep):null,nid=old?old.id:uid();
-  const r=safe(()=>{if(old)S.tx=S.tx.filter(t=>t.id!==old.id);S.tx.push({id:nid,no:old?old.no:++S.seq,kind,date,party,tid,qty,price,disc,tr,paid:pd,pm:$('pm').value,note:$('n').value.trim()})});
+  const r=safe(()=>{if(old)S.tx=S.tx.filter(t=>t.id!==old.id);S.tx.push({id:nid,no:old?old.no:++S.seq,kind,date,party,tid,qty,price,disc,tr,trn:$('trn').value.trim(),paid:pd,pm:$('pm').value,note:$('n').value.trim()})});
   if(r){$('err').textContent=r;return}
-  attachX(nid,party,date);save();$('err').textContent='';endEdit();['q','pr','pd','n'].forEach(i=>$(i).value='');$('tr').value=0;$('dc').value=0;upd();render()};
+  save();$('err').textContent='';endEdit();['q','pr','pd','n','trn'].forEach(i=>$(i).value='');$('tr').value=0;$('dc').value=0;upd();render()};
 
 $('tf').onsubmit=e=>{e.preventDefault();const n=$('tn').value.trim();if(!n)return;
   S.types.push({id:uid(),name:n});$('tn').value='';save();render()};
@@ -440,7 +411,7 @@ document.addEventListener('click',e=>{const d=e.target.dataset;if(!d)return;
     <p>التاريخ: ${t.date}<br>${t.kind==='buy'?'المورّد (المصنع)':'العميل'}: ${esc(t.party)}${cinfo(t.party)}</p>
     <table><tr><th>الصنف</th><th>الكمية (طن)</th><th>سعر الطن</th><th>القيمة</th></tr>
     ${G.map(x=>`<tr><td>مكرونة هالك — ${esc(x.grade||tn(x.tid))}${x.ch?' ('+esc(x.ch)+')':''}</td><td>${fmt(x.qty,3)}</td><td>${M(x.price)}</td><td>${M(x.qty*x.price)}</td></tr>`).join('')}</table>
-    <p>نقل ومصروفات: ${M(trt)}${xs.length?' <small>('+xs.map(x=>esc(x.cat)+' '+fmt(x.amt)).join('، ')+')</small>':''}<br>${dsc>0.004?'الإجمالي قبل الخصم: '+M(gv)+'<br>الخصم: <b>'+M(dsc)+'</b><br>':''}الإجمالي${dsc>0.004?' بعد الخصم':''}: <b>${M(v)}</b><br>${t.kind==='buy'?'الإجمالي بالنقل والمصروفات':'الصافي بعد النقل والمصروفات'}: ${M(t.kind==='buy'?v+trt:v-trt)}<br>المدفوع: ${M(pdt)} (${PM[pmOf(t)]})<br>المتبقي: <b>${M(v-pdt)}</b></p>
+    <p>نقل ومصروفات: ${M(trt)}${xs.length?' <small>('+xs.map(x=>esc(x.cat)+' '+fmt(x.amt)).join('، ')+')</small>':''}${G.some(x=>x.trn)?' <small>('+esc(G.map(x=>x.trn).filter(Boolean).join('، '))+')</small>':''}<br>${dsc>0.004?'الإجمالي قبل الخصم: '+M(gv)+'<br>الخصم: <b>'+M(dsc)+'</b><br>':''}الإجمالي${dsc>0.004?' بعد الخصم':''}: <b>${M(v)}</b><br>${t.kind==='buy'?'الإجمالي بالنقل والمصروفات':'الصافي بعد النقل والمصروفات'}: ${M(t.kind==='buy'?v+trt:v-trt)}<br>المدفوع: ${M(pdt)} (${PM[pmOf(t)]})<br>المتبقي: <b>${M(v-pdt)}</b></p>
     ${t.note?`<p>ملاحظة: ${esc(t.note)}</p>`:''}<p style="margin-top:40px">التوقيع: ____________</p>`;
     window.print()}});
 
@@ -451,30 +422,12 @@ function restore(txt){try{const o=JSON.parse(txt);if(!Array.isArray(o.types)||!A
 $('bi').onclick=()=>restore($('bk').value);
 $('bd').onclick=()=>{if(S.demo&&!confirm('إنت في وضع الديمو — النسخة هتكون بيانات تجريبية. متابعة؟'))return;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:'application/json'}));a.download='kayan-backup-'+today()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);try{localStorage.setItem(KEY+'_bk',Date.now())}catch(x){}$('bm').textContent='تم تحميل النسخة الاحتياطية.';render()};
 $('bf').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>restore(r.result);r.readAsText(f);e.target.value=''};
-$('cx').onclick=()=>{const C=calc();csv('operations-'+today()+'.csv',[['رقم','التاريخ','النوع','الاسم','الصنف','طريقة البيع','الكمية (طن)','سعر الطن','نقل','مصروفات الرحلة','الخصم','الإجمالي بعد الخصم','المدفوع','المتبقي','طريقة الدفع','ملاحظة']].concat(LR.map(t=>{const v=V(t);return[t.no,t.date,t.kind==='buy'?'شراء':'بيع',t.party,t.grade||tn(t.tid),t.ch||'',t.qty,t.price,t.tr,C.xe[t.id]||0,t.disc||0,v,t.paid,Math.round((v-t.paid)*100)/100,PM[pmOf(t)],t.note||'']})))};
+$('cx').onclick=()=>{const C=calc();csv('operations-'+today()+'.csv',[['رقم','التاريخ','النوع','الاسم','الصنف','طريقة البيع','الكمية (طن)','سعر الطن','النقل والمصروفات','ملاحظات المصروفات','الخصم','الإجمالي بعد الخصم','المدفوع','المتبقي','طريقة الدفع','ملاحظة']].concat(LR.map(t=>{const v=V(t);return[t.no,t.date,t.kind==='buy'?'شراء':'بيع',t.party,t.grade||tn(t.tid),t.ch||'',t.qty,t.price,t.tr+(C.xe[t.id]||0),t.trn||'',t.disc||0,v,t.paid,Math.round((v-t.paid)*100)/100,PM[pmOf(t)],t.note||'']})))};
 $('rs').onclick=()=>{if(confirm('سيتم مسح كل العمليات والأصناف نهائيًا. متابعة؟')){S={types:['خام','مكسر','مطحون'].map((n,i)=>({id:i+1,name:n})),tx:[],ex:[],sr:[],ct:[],pay:[],adj:[],seq:0};norm();save();render()}};
-const CATS=['إكرامية','أكل وشرب','تحميل','تنزيل','مواصلات','أخرى'];
 const mk=d=>d.slice(0,7);
 function show(t){document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('show',p.dataset.p===t));document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t))}
 $('tabs').onclick=e=>{if(e.target.dataset.tab)show(e.target.dataset.tab)};
-$('xd').value=today();$('rm').value=today().slice(0,7);
-function xform(){$('xs').textContent=xedit?'حفظ التعديل':'حفظ المصروف';$('xcn').hidden=!xedit}
-function xsync(setDate){const id=+$('xt').value,t=id?S.tx.find(t=>t.id===id):null;$('xp').disabled=!!t;if(t){$('xp').value=t.party;if(setDate)$('xd').value=t.date}}
-$('xt').onchange=()=>xsync(true);
-$('cats').onclick=e=>{const d=e.target.dataset;if(d.cat){$('xc').value=d.cat;$('xa').focus()}
-  else if(d.xcd!==undefined){const L=xcats(),c=L[+d.xcd];if(c&&confirm('حذف نوع "'+c+'" من الأزرار؟ المصروفات المسجلة بيه مش هتتأثر.')){L.splice(+d.xcd,1);save();renderX()}}};
-$('xf').onsubmit=e=>{e.preventDefault();const id=+$('xt').value,t=id?S.tx.find(x=>x.id===id):null,cat=$('xc').value.trim();
-  const o={date:$('xd').value,cat,amt:+$('xa').value,party:t?t.party:$('xp').value.trim(),note:$('xn').value.trim(),trip:t?t.id:0};
-  if(!cat||!(o.amt>0))return;
-  if(xedit){const x=S.ex.find(x=>x.id===xedit);if(x)Object.assign(x,o)}else S.ex.push({id:uid(),...o});
-  noteCat(cat);xedit=null;xform();save();['xc','xa','xn'].forEach(i=>$(i).value='');render()};
-$('xcn').onclick=()=>{xedit=null;['xc','xa','xn'].forEach(i=>$(i).value='');xform()};
-document.addEventListener('click',e=>{const d=e.target.dataset;if(!d)return;
-  if(d.xd){if(confirm('حذف المصروف؟')){S.ex=S.ex.filter(x=>String(x.id)!==d.xd);if(String(xedit)===d.xd){xedit=null;xform()}save();render()}}
-  else if(d.xe){const x=S.ex.find(x=>String(x.id)===d.xe);if(!x)return;xedit=x.id;const tr=calc().xl[x.id]||0;
-    $('xt').value=tr?String(tr):'';$('xd').value=x.date;$('xc').value=x.cat;$('xa').value=x.amt;$('xn').value=x.note||'';xsync(false);if(!tr)$('xp').value=x.party||'';xform();$('xf').scrollIntoView({behavior:'smooth'});$('xc').focus()}
-  else if(d.xadd){$('xt').value=d.xadd;xsync(true);$('xf').scrollIntoView({behavior:'smooth'});$('xc').focus()}});
-['xfk','xft','xfm'].forEach(i=>$(i).onchange=()=>renderX());
+$('rm').value=today().slice(0,7);
 function fill(){const l=sorted().reverse().find(t=>t.kind===kind&&t.tid===+$('ty').value);if(l&&!$('pr').value){$('pr').value=l.price;upd()}}
 $('ty').addEventListener('change',()=>{$('pr').value='';fill()});
 document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{$('pr').value='';fill()}));
@@ -490,33 +443,12 @@ function rep(m){
   const rows=S.types.map(ty=>{const s=L.filter(t=>t.tid===ty.id),le=(C0.led[ty.id]||[]).filter(x=>mk(x.d)<=m),end=le.length?le[le.length-1].q:0;
     return`<tr><td>${esc(ty.name)}</td><td>${fmt(su(B.filter(t=>t.tid===ty.id),t=>t.qty),3)}</td><td>${fmt(su(s,t=>t.qty),3)}</td><td>${M(su(s,t=>V(t)))}</td><td>${fmt(end,3)}</td></tr>`}).join('');
   const cr=Object.keys(cats).map(c=>`<tr><td>${esc(c)}</td><td>${M(cats[c])}</td></tr>`).join('')||'<tr><td colspan="2">لا توجد مصروفات في هذا الشهر.</td></tr>';
-  return`<div class="grid" style="margin-top:10px">${k('مشتريات الشهر',fmt(su(B,t=>t.qty),3)+' طن — '+M(su(B,t=>V(t))))}${k('مبيعات الشهر',fmt(su(L,t=>t.qty),3)+' طن — '+M(su(L,t=>V(t))))}${k('مصاريف النقل',M(su(T,t=>t.tr)))}${k('فاقد الفرز',fmt(su(S.sr.filter(x=>mk(x.date)===m),x=>x.qty-su(x.outs,o=>o.qty)),3)+' طن')}${k('ربح المبيعات',M(pr),pr>=0?'pos':'neg')}${k('مصروفات الرحلات',M(ext),'neg')}${k('الهالك وفروقات الجرد',M(aj),aj>=0?'pos':'neg')}${k('مسحوبات شخصية (خارج الأرباح)',M(su(S.cap.filter(x=>x.kind==='out'&&mk(x.date)===m),x=>x.amt)),'neg')}${k('الصافي بعد المصروفات',M(pr-extU+aj),pr-extU+aj>=0?'pos':'neg')}</div>
+  return`<div class="grid" style="margin-top:10px">${k('مشتريات الشهر',fmt(su(B,t=>t.qty),3)+' طن — '+M(su(B,t=>V(t))))}${k('مبيعات الشهر',fmt(su(L,t=>t.qty),3)+' طن — '+M(su(L,t=>V(t))))}${k('النقل والمصروفات',M(su(T,t=>t.tr)))}${k('فاقد الفرز',fmt(su(S.sr.filter(x=>mk(x.date)===m),x=>x.qty-su(x.outs,o=>o.qty)),3)+' طن')}${k('ربح المبيعات',M(pr),pr>=0?'pos':'neg')}${ext>0.005?k('مصروفات قديمة غير مرتبطة',M(ext),'neg'):''}${k('الهالك وفروقات الجرد',M(aj),aj>=0?'pos':'neg')}${k('مسحوبات شخصية (خارج الأرباح)',M(su(S.cap.filter(x=>x.kind==='out'&&mk(x.date)===m),x=>x.amt)),'neg')}${k('الصافي بعد المصروفات',M(pr-extU+aj),pr-extU+aj>=0?'pos':'neg')}</div>
   <div class="scroll"><table style="min-width:0"><tr><th>الصنف</th><th>اشتريت (طن)</th><th>بعت (طن)</th><th>قيمة المبيعات</th><th>المخزون آخر الشهر (طن)</th></tr>${rows}</table></div>
   <h2 style="margin-top:12px">المصروفات حسب النوع</h2><table style="min-width:0"><tr><th>النوع</th><th>المبلغ</th></tr>${cr}</table>
   <h2 style="margin-top:12px">المبيعات حسب طريقة البيع</h2><table style="min-width:0"><tr><th>الطريقة</th><th>طن</th><th>القيمة</th></tr>${cs2}</table>`;
 }
-function renderX(){
-  const C=calc(),L=tripList(),cats=xcats();
-  $('cats').innerHTML=cats.map((c,i)=>`<span style="display:inline-flex"><button type="button" class="btn ghost" data-cat="${esc(c)}">${esc(c)}</button><button type="button" class="x" data-xcd="${i}" title="حذف النوع من الأزرار" aria-label="حذف النوع">✕</button></span>`).join('');
-  $('xcl').innerHTML=[...new Set(cats.concat(S.ex.map(x=>x.cat)))].map(c=>`<option value="${esc(c)}">`).join('');
-  const cur=$('xt').value;$('xt').innerHTML=tripOpts(L,'بدون رحلة (مصروف عام)');$('xt').value=cur;if($('xt').value!==cur)$('xt').value='';xsync(false);xform();
-  const f1=$('xfk').value,f2=$('xft').value;
-  $('xfk').innerHTML=tripOpts(L,'كل الرحلات').replace('</option>','</option><option value="none">مصروفات غير مرتبطة بأي رحلة</option>');$('xfk').value=f1;if($('xfk').value!==f1)$('xfk').value='';
-  $('xft').innerHTML='<option value="">كل الأنواع</option>'+[...new Set(S.ex.map(x=>x.cat))].map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');$('xft').value=f2;if($('xft').value!==f2)$('xft').value='';
-  const fk=$('xfk').value,ft=$('xft').value,fm=$('xfm').value,tot=a=>a.reduce((s,x)=>s+x.amt,0);
-  const ex=S.ex.filter(x=>{const tr=C.xl[x.id]||0;return(!fk||(fk==='none'?!tr:String(tr)===fk))&&(!ft||x.cat===ft)&&(!fm||x.date.startsWith(fm))}).sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id);
-  const by=a=>{const m={};a.forEach(x=>m[x.cat]=(m[x.cat]||0)+x.amt);return Object.entries(m).map(([k,v])=>esc(k)+' '+fmt(v)).join(' • ')};
-  const tbl=(a,gen)=>`<div class="scroll"><table style="min-width:520px"><thead><tr><th>التاريخ</th><th>النوع</th><th>المبلغ</th>${gen?'<th>المصنع / العميل</th>':''}<th>ملاحظة</th><th></th></tr></thead><tbody>${a.map(x=>`<tr><td>${x.date}</td><td>${esc(x.cat)}</td><td>${M(x.amt)}</td>${gen?`<td>${esc(x.party||'—')}</td>`:''}<td style="white-space:normal">${esc(x.note||'')}</td><td><button class="x" data-xe="${x.id}" title="تعديل" aria-label="تعديل المصروف">✎</button><button class="x" data-xd="${x.id}" aria-label="حذف المصروف">✕</button></td></tr>`).join('')}</tbody></table></div>`;
-  let h='';
-  [...L].reverse().forEach(r=>{const a=ex.filter(x=>C.xl[x.id]===r.id);if(!a.length&&String(r.id)!==fk)return;const all=C.xd[r.id]||[];
-    h+=`<div class="xg"><div class="bar" style="margin-bottom:4px"><span class="tag ${r.kind==='buy'?'b':'s'}">${r.kind==='buy'?'شراء':'بيع'}</span><b style="flex:1;min-width:200px">رحلة #${r.n} — ${esc(r.party)} — ${r.date} — ${fmt(r.q,3)} طن</b><button type="button" class="btn ghost" data-xadd="${r.id}">+ مصروف للرحلة</button></div>
-    <div class="sub">نقل: ${M(r.tr)} • مصروفات الرحلة: <b>${M(tot(all))}</b> • إجمالي النقل والمصروفات: <b>${M(r.tr+tot(all))}</b></div>
-    ${all.length?`<div class="sub" style="margin-bottom:6px">${by(all)}</div>`:''}${a.length?tbl(a,false):'<div class="empty">لا توجد مصروفات لهذه الرحلة بعد.</div>'}</div>`});
-  const un=ex.filter(x=>!C.xl[x.id]);
-  if(un.length)h+=`<div class="xg"><div class="bar" style="margin-bottom:4px"><b style="flex:1">مصروفات غير مرتبطة بأي رحلة</b></div><div class="sub" style="margin-bottom:6px">الإجمالي: <b>${M(tot(un))}</b> — دي مش داخلة في تكلفة أي عملية (بتتخصم من الصافي في التقرير). اضغط ✎ واختار الرحلة لربطها.</div>${tbl(un,true)}</div>`;
-  $('xlist').innerHTML=h||'<div class="empty">لا توجد مصروفات مطابقة. اختار رحلة من الأعلى وسجّل أول مصروف.</div>';
-  const K=(a,b)=>`<div class="k"><small>${a}</small><b>${b}</b></div>`;
-  $('xsum').innerHTML=ex.length?K('إجمالي المعروض',M(tot(ex)))+K('عدد المصروفات',ex.length)+K('حسب النوع',`<span style="font-size:.85rem;font-weight:400;white-space:normal">${by(ex)}</span>`):'';
+function renderRest(){
   $('rbody').innerHTML=rep($('rm').value);
   $('gl').innerHTML=[...new Set(GR.concat(S.tx.map(t=>t.grade).filter(Boolean)))].map(c=>`<option value="${esc(c)}">`).join('');
   $('cl').innerHTML=[...new Set(CH.concat(S.tx.map(t=>t.ch).filter(Boolean)))].map(c=>`<option value="${esc(c)}">`).join('');
@@ -555,8 +487,8 @@ function lrow(){const d=document.createElement('div');d.className='lrow';
   d.innerHTML='<input class="lg" list="gl" placeholder="النوع (نمرة 1، مكسر...)" aria-label="نوع المكرونة"><input class="lc" list="cl" placeholder="طريقة البيع (أكل، مزارع سمك...)" aria-label="طريقة البيع"><input class="lq" type="number" step="0.001" min="0" placeholder="الكمية (طن)" aria-label="الكمية"><input class="lp" type="number" step="0.01" min="0" placeholder="سعر الطن" aria-label="سعر الطن"><button type="button" class="x" aria-label="حذف النوع">✕</button>';
   $('lr').appendChild(d)}
 function lrows(){return[...document.querySelectorAll('#lr .lrow')].map(r=>({grade:r.querySelector('.lg').value.trim(),ch:r.querySelector('.lc').value.trim(),qty:+r.querySelector('.lq').value||0,price:+r.querySelector('.lp').value||0})).filter(l=>l.qty>0)}
-function lupd(){const L=lrows(),q=L.reduce((a,l)=>a+l.qty,0),g=L.reduce((a,l)=>a+l.qty*l.price,0),dc=+$('dc').value||0,v=g-dc,tr=+$('tr').value||0,x=xtot(),av=(calc().st[+$('ty').value]||{q:0}).q;
-  $('tot').textContent='إجمالي المباع: '+fmt(q,3)+' طن من المتاح '+fmt(av,3)+' طن — القيمة: '+M(g)+(dc?' — خصم: '+M(dc)+' — بعد الخصم: '+M(v):'')+((tr||x)?' — نقل: '+M(tr)+' — مصروفات: '+M(x)+' — الصافي بعد النقل والمصروفات: '+M(v-tr-x):'')}
+function lupd(){const L=lrows(),q=L.reduce((a,l)=>a+l.qty,0),g=L.reduce((a,l)=>a+l.qty*l.price,0),dc=+$('dc').value||0,v=g-dc,tr=+$('tr').value||0,av=(calc().st[+$('ty').value]||{q:0}).q;
+  $('tot').textContent='إجمالي المباع: '+fmt(q,3)+' طن من المتاح '+fmt(av,3)+' طن — القيمة: '+M(g)+(dc?' — خصم: '+M(dc)+' — بعد الخصم: '+M(v):'')+(tr?' — النقل والمصروفات: '+M(tr)+' — الصافي بعد النقل والمصروفات: '+M(v-tr):'')}
 function applyKind(){const s=kind==='sell';$('gq').hidden=$('gp').hidden=s;$('q').required=$('pr').required=!s;$('lines').hidden=!s;
   $('tylbl').textContent=s?'السحب من مخزون':'صنف المكرونة';fillP();pinfo();upd()}
 function sellSubmit(){
@@ -566,9 +498,9 @@ function sellSubmit(){
   const gross=L.reduce((a,l)=>a+l.qty*l.price,0),disc=+$('dc').value||0;if(disc<0||disc>gross)return er('الخصم لازم يكون بين صفر وإجمالي العملية ('+M(gross)+').');
   const v=gross-disc,pd=pdv(v),rep=tedit?tedit.rep:0;let g=0;
   const r=safe(()=>{if(tedit)S.tx=S.tx.filter(x=>!tedit.ids.includes(x.id));const nn=tedit?tedit.no:++S.seq,ids=L.map((l,i)=>i===0&&rep?rep:uid());g=ids[0];
-    L.forEach((l,i)=>S.tx.push({id:ids[i],grp:g,no:nn,kind:'sell',date,party,tid,grade:l.grade,ch:l.ch,qty:l.qty,price:l.price,disc:gross?disc*l.qty*l.price/gross:0,tr:i===0?tr:0,paid:v?pd*(l.qty*l.price*(1-(gross?disc/gross:0)))/v:0,pm:$('pm').value,note:$('n').value.trim()}))});
+    L.forEach((l,i)=>S.tx.push({id:ids[i],grp:g,no:nn,kind:'sell',date,party,tid,grade:l.grade,ch:l.ch,qty:l.qty,price:l.price,disc:gross?disc*l.qty*l.price/gross:0,tr:i===0?tr:0,trn:i===0?$('trn').value.trim():'',paid:v?pd*(l.qty*l.price*(1-(gross?disc/gross:0)))/v:0,pm:$('pm').value,note:$('n').value.trim()}))});
   if(r)return er(r);
-  attachX(g,party,date);save();er('');endEdit();$('lr').innerHTML='';lrow();['pd','n'].forEach(i=>$(i).value='');$('tr').value=0;$('dc').value=0;upd();render()}
+  save();er('');endEdit();$('lr').innerHTML='';lrow();['pd','n','trn'].forEach(i=>$(i).value='');$('tr').value=0;$('dc').value=0;upd();render()}
 $('la').onclick=lrow;
 $('lr').onclick=e=>{if(e.target.classList.contains('x')&&$('lr').children.length>1){e.target.parentNode.remove();upd()}};
 $('lr').oninput=upd;$('ty').addEventListener('change',upd);
@@ -577,8 +509,7 @@ function cinfo(n){const c=S.ct.find(x=>x.name===n);return c?(c.addr?'<br>الع�
 function pinfo(){$('pinfo').innerHTML=cinfo($('p').value.trim()).replace(/^<br>/,'')}
 function fillP(){const k=kind==='buy'?'factory':'customer',nm=new Set(S.ct.filter(c=>c.kind===k).map(c=>c.name));
   S.tx.filter(t=>t.kind===kind).forEach(t=>nm.add(t.party));
-  $('parties').innerHTML=[...nm].map(n=>`<option value="${esc(n)}">`).join('');
-  $('parties2').innerHTML=[...new Set(S.ct.map(c=>c.name).concat(S.tx.map(t=>t.party)))].map(n=>`<option value="${esc(n)}">`).join('')}
+  $('parties').innerHTML=[...nm].map(n=>`<option value="${esc(n)}">`).join('')}
 $('p').addEventListener('input',pinfo);
 function renderC(){const q=$('cq').value.trim(),k=$('cfk').value,pf=calc().pf;
   const rows=S.ct.filter(c=>(!k||c.kind===k)&&(!q||(c.name+' '+c.addr+' '+c.phone).includes(q))).sort((a,b)=>a.name.localeCompare(b.name,'ar'));
@@ -613,7 +544,7 @@ function renderA(profit,exT,exU){
   const su=(a,f)=>a.reduce((s,t)=>s+f(t),0),B=S.tx.filter(t=>t.kind==='buy'),L=S.tx.filter(t=>t.kind==='sell'),PY=k=>S.pay.filter(x=>x.kind===k),
    sv=su(L,t=>V(t)),bv=su(B,t=>V(t)),cin=su(L,t=>t.paid)+su(PY('sell'),x=>x.amt),cout=su(B,t=>t.paid)+su(PY('buy'),x=>x.amt),tr=su(S.tx,t=>t.tr),
    K=(a,b,c)=>`<div class="k"><small>${a}</small><b class="${c||''}">${b}</b></div>`,net=profit-exU+ADJ,cash=cin-cout-tr-exT;
-  $('acc').innerHTML=K('إجمالي الإيرادات (المبيعات)',M(sv))+K('المحصّل من العملاء',M(cin),'pos')+K('لنا عند العملاء',M(sv-cin),'pos')+K('إجمالي المشتريات',M(bv))+K('المدفوع للمصانع',M(cout))+K('علينا للمصانع',M(bv-cout),'neg')+K('مصاريف النقل',M(tr))+K('مصروفات الرحلات',M(exT),'neg')+K('ربح المبيعات',M(profit),profit>=0?'pos':'neg')+K('الصافي بعد المصروفات',M(net),net>=0?'pos':'neg')+K('صافي السيولة (محصّل − مدفوع − نقل − مصروفات)',M(cash),cash>=0?'pos':'neg')+(f=>S.cap.length?K('رأس المال',M(f.cap))+(f.cOut>0?K('مسحوبات شخصية (خارج الأرباح)',M(f.cOut),'neg'):'')+K('السيولة المتاحة (مع رأس المال)',M(f.cash),f.cash>=0?'pos':'neg'):'')(fin());
+  $('acc').innerHTML=K('إجمالي الإيرادات (المبيعات)',M(sv))+K('المحصّل من العملاء',M(cin),'pos')+K('لنا عند العملاء',M(sv-cin),'pos')+K('إجمالي المشتريات',M(bv))+K('المدفوع للمصانع',M(cout))+K('علينا للمصانع',M(bv-cout),'neg')+K('النقل والمصروفات',M(tr))+(exT>0.005?K('مصروفات قديمة غير مرتبطة',M(exT),'neg'):'')+K('ربح المبيعات',M(profit),profit>=0?'pos':'neg')+K('الصافي بعد المصروفات',M(net),net>=0?'pos':'neg')+K('صافي السيولة (محصّل − مدفوع − نقل − مصروفات)',M(cash),cash>=0?'pos':'neg')+(f=>S.cap.length?K('رأس المال الحالي (شامل الأرباح)',M(f.eq),f.eq>=0?'pos':'neg')+(f.cOut>0?K('مسحوبات شخصية (خارج الأرباح)',M(f.cOut),'neg'):'')+K('السيولة المتاحة (مع رأس المال)',M(f.cash),f.cash>=0?'pos':'neg'):'')(fin());
   const m={};Object.keys(PM).filter(k=>k!=='credit').forEach(k=>m[k]={i:0,o:0});
   L.forEach(t=>{if(t.paid>0)(m[pmOf(t)]||m.cash).i+=t.paid});B.forEach(t=>{if(t.paid>0)(m[pmOf(t)]||m.cash).o+=t.paid});
   S.pay.forEach(x=>{const o=m[x.method]||m.cash;if(x.kind==='sell')o.i+=x.amt;else o.o+=x.amt});
@@ -657,7 +588,7 @@ function runChecks(){const c=calc(),near=(a,b)=>Math.abs(a-b)<1,q=Object.values(
   ['مزرعة السمك: لنا 21,000',near(fm.r,21000),bal(fm.r)],
   ['مطعم الصفا (آجل + دفعة): لنا 12,000',near(pstat('مطعم الصفا').r,12000),bal(pstat('مطعم الصفا').r)],
   ['علف الدلتا: مسدّد',pstat('علف الدلتا').r===0,bal(pstat('علف الدلتا').r)],
-  ['ربح المبيعات ≈ 21,477 (بعد النقل والمصروفات المرتبطة)',near(c.profit,21477.16),M(c.profit)],['مصروفات رحلة النور (350) اتسحبت لعملية الشراء',near(c.xe[bn.id]||0,350),M(c.xe[bn.id]||0)],['مصروفات رحلة المزرعة (400) اتسحبت لعملية البيع',near(c.xe[sa.id]||0,400),M(c.xe[sa.id]||0)],['سعر الشراء للطن في بيع مطعم الصفا ≈ 7,909',near(c.ca[sr.id]||0,7909.375),M(c.ca[sr.id]||0)],['مصروفات الرحلات 1,050',kv('مصروفات الرحلات')===M(1050),kv('مصروفات الرحلات')],
+  ['ربح المبيعات ≈ 21,477 (بعد النقل والمصروفات المرتبطة)',near(c.profit,21477.16),M(c.profit)],['نقل ومصروفات النور (500 + 350) اتجمّعت في عملية الشراء',near(bn.tr,850),M(bn.tr)],['نقل ومصروفات المزرعة (600 + 400) اتجمّعت في عملية البيع',near(sa.tr,1000),M(sa.tr)],['سعر الشراء للطن في بيع مطعم الصفا ≈ 7,909',near(c.ca[sr.id]||0,7909.375),M(c.ca[sr.id]||0)],['النقل والمصروفات 3,050',kv('النقل والمصروفات')===M(3050),kv('النقل والمصروفات')],
   ['ربح مزرعة السمك ≈ 10,453',near(fm.pf,10453.13),M(fm.pf)],
   ['إجمالي الإيرادات 88,000',kv('إجمالي الإيرادات')===M(88000),kv('إجمالي الإيرادات')],
   ['المحصّل من العملاء 55,000',kv('المحصّل')===M(55000),kv('المحصّل')],
@@ -701,10 +632,10 @@ function startEdit(id){const t=S.tx.find(x=>x.id===id);if(!t)return;const G=t.gr
   const v=G.reduce((a,x)=>a+V(x),0),pd=G.reduce((a,x)=>a+x.paid,0);
   $('dc').value=Math.round(G.reduce((a,x)=>a+(x.disc||0),0)*100)/100;
   $('pd').value=$('pm').value==='credit'||Math.abs(pd-v)<0.005?'':Math.round(pd*100)/100;
-  $('tr').value=G.reduce((a,x)=>a+x.tr,0);$('n').value=t.note||'';
+  $('tr').value=G.reduce((a,x)=>a+x.tr,0);$('trn').value=(G.find(x=>x.trn)||{}).trn||'';$('n').value=t.note||'';
   if(t.kind==='buy'){$('q').value=t.qty;$('pr').value=t.price}
   else{$('lr').innerHTML='';G.forEach(x=>{lrow();const r=$('lr').lastChild;r.querySelector('.lg').value=x.grade||'';r.querySelector('.lc').value=x.ch||'';r.querySelector('.lq').value=x.qty;r.querySelector('.lp').value=x.price})}
-  $('fh').textContent='تعديل العملية رقم '+t.no+' (المصروفات المرتبطة بتتعدّل من تبويب مصروفات الرحلات)';$('fs2').textContent='حفظ التعديل';$('ecn').hidden=false;$('err').textContent='';upd();$('f').scrollIntoView({behavior:'smooth'})}
+  $('fh').textContent='تعديل العملية رقم '+t.no;$('fs2').textContent='حفظ التعديل';$('ecn').hidden=false;$('err').textContent='';upd();$('f').scrollIntoView({behavior:'smooth'})}
 $('ecn').onclick=()=>{endEdit();$('f').reset();$('d').value=today();$('tr').value=0;$('dc').value=0;$('lr').innerHTML='';lrow();$('pd').disabled=false;upd()};
 
 function renderS(C){
@@ -741,19 +672,19 @@ function fin(C){C=C||calc();
   return{bv,sv,cin,cout,tr,exT,cIn,cOut,cap,op,cash,sk,ar,ap,eq,net,gain:eq-cap}}
 const pc=(a,b)=>b>0?fmt(a/b*100,1)+'٪':'—';
 const capSort=L=>[...L].sort((a,b)=>a.date.localeCompare(b.date)||(a.kind==='in'?0:1)-(b.kind==='in'?0:1)||a.id-b.id);
-function capOK(L){let r=0;for(const x of capSort(L)){r+=x.kind==='in'?x.amt:-x.amt;if(r<-0.005)return false}return true}
+function capOK(L){const n=a=>a.reduce((r,x)=>r+(x.kind==='in'?x.amt:-x.amt),0);return fin().eq+n(L)-n(S.cap)>=-0.005}
 const capAt=d=>S.cap.filter(x=>x.date<=d).reduce((a,x)=>a+(x.kind==='in'?x.amt:-x.amt),0);
 function capHead(F){
   if(!S.cap.length)return'<span class="capt">رأس المال</span><strong class="cv">غير مسجّل</strong><div class="capl" style="opacity:.85"><span style="opacity:1">سجّل رأس المال لتظهر السيولة المتاحة ونسبة المشتريات والمبيعات والمصروفات عليه.</span></div><button class="btn" type="button" data-capgo="1">＋ إضافة رأس المال</button>';
   const g=F.gain,cl=x=>x>=-0.005?'hp':'hn',pp=x=>F.cap>0?M(x)+' · '+pc(x,F.cap):M(x);
-  return`<span class="capt">رأس المال</span><strong class="cv">${M(F.cap)}</strong>
+  return`<span class="capt">رأس المال الحالي (شامل الأرباح والخسائر)</span><strong class="cv">${M(F.eq)}</strong>
+  <div class="capl"><span>رأس المال المضاف</span><span>${M(F.cIn)}</span></div>
+  <div class="capl"><span>${g>=-0.005?'(+) الأرباح':'(−) الخسائر'}</span><span class="${cl(g)}">${g>0.005?'+':''}${M(g)}${F.cIn>0?' ('+pc(g,F.cIn)+')':''}</span></div>
+  ${F.cOut>0?`<div class="capl"><span>(−) مسحوبات شخصية (خارج الأرباح)</span><span>${M(-F.cOut)}</span></div>`:''}
   <div class="capl"><span>السيولة المتاحة (الكاش)</span><span class="${cl(F.cash)}">${M(F.cash)}</span></div>
   <div class="capl"><span>المشتريات</span><span>${pp(F.bv)}</span></div>
   <div class="capl"><span>المبيعات</span><span>${pp(F.sv)}</span></div>
   <div class="capl"><span>المصروفات (نقل + رحلات)</span><span>${pp(F.tr+F.exT)}</span></div>
-  ${F.cOut>0?`<div class="capl"><span>مسحوبات شخصية (خارج الأرباح)</span><span>${M(F.cOut)}</span></div>`:''}
-  <div class="capl"><span>إجمالي رأس المال الحالي</span><span>${M(F.eq)}</span></div>
-  <div class="capl"><span>الربح / الخسارة على رأس المال</span><span class="${cl(g)}">${g>0.005?'+':''}${M(g)}${F.cap>0?' ('+pc(g,F.cap)+')':''}</span></div>
   <button class="btn" type="button" data-capgo="1">＋ زيادة رأس المال</button>`}
 function renderK(F){
   const R=(a,v,cl,t)=>`<tr${t?' class="tt"':''}><td>${a}</td><td class="${cl||''}">${M(v)}</td></tr>`,cl=x=>x>=-0.005?'pos':'neg';
@@ -771,12 +702,12 @@ function renderK(F){
 const KCD=['أخويا','البيت','شخصي','أخرى'],kcats=()=>S.kcats||(S.kcats=KCD.slice());
 function kvis(){$('kcw').hidden=$('kt').value!=='out'}
 $('kt').addEventListener('input',kvis);
-function kpv(){const a=+$('ka').value,d=$('kd').value;if(!(a>0)||!d){$('kp').textContent='';return}const F=fin(),s=$('kt').value==='in'?1:-1;$('kp').textContent='رأس المال بعد العملية: '+M(F.cap+s*a)+' — السيولة المتاحة بعدها: '+M(F.cash+s*a)}
+function kpv(){const a=+$('ka').value,d=$('kd').value;if(!(a>0)||!d){$('kp').textContent='';return}const F=fin(),s=$('kt').value==='in'?1:-1;$('kp').textContent='رأس المال الحالي بعد العملية: '+M(F.eq+s*a)+' — السيولة المتاحة بعدها: '+M(F.cash+s*a)}
 ['kt','kd','ka'].forEach(i=>$(i).addEventListener('input',kpv));
 $('kd').value=today();
 $('kf').onsubmit=e=>{e.preventDefault();const amt=+$('ka').value,k2=$('kt').value,date=$('kd').value,er=m=>{$('ke').textContent=m};
   if(!(amt>0)||!date)return er('اكتب المبلغ والتاريخ.');
-  if(!capOK([...S.cap,{id:Infinity,date,amt,kind:k2}]))return er('السحب ده أكبر من رأس المال المتاح في التاريخ ده ('+M(Math.max(capAt(date),0))+').');
+  if(!capOK([...S.cap,{id:Infinity,date,amt,kind:k2}]))return er('السحب ده أكبر من رأس المال الحالي شامل الأرباح ('+M(Math.max(fin().eq,0))+').');
   const cat=k2==='out'?$('kc').value.trim():'';
   if(k2==='out'&&!cat)return er('اكتب لمين السحب أو الغرض منه (مثلًا أخويا أو البيت).');
   if(k2==='out'&&amt>fin().cash+0.005&&!confirm('المبلغ أكبر من السيولة المتاحة حاليًا ('+M(fin().cash)+') — السيولة هتبقى بالسالب. متابعة؟'))return;
@@ -787,7 +718,7 @@ document.addEventListener('click',e=>{const d=e.target.dataset;if(!d)return;
   else if(d.kcd!==undefined){const L=kcats(),c=L[+d.kcd];if(c&&confirm('حذف "'+c+'" من الأزرار؟ السحوبات المسجلة بيها مش هتتأثر.')){L.splice(+d.kcd,1);save();render()}}
   else if(d.capgo){show('cap');$('kt').value='in';$('kf').scrollIntoView({behavior:'smooth'});$('ka').focus()}
   else if(d.kd){const L=S.cap.filter(x=>String(x.id)!==d.kd);
-    if(!capOK(L))alert('مينفعش تحذف الحركة دي، لأن سحوبات بعدها هتبقى أكبر من رأس المال. احذف السحوبات الأول.');
+    if(!capOK(L))alert('مينفعش تحذف الحركة دي، لأن رأس المال الحالي هيبقى بالسالب. احذف السحوبات الأول.');
     else if(confirm('حذف حركة رأس المال دي؟')){S.cap=L;save();render()}}});
 
 /* ===== لوحة التحكم ===== */
@@ -839,7 +770,7 @@ function dbRender(C){
   const margin=cur.sv>0?cur.pf/cur.sv*100:0,per=mm?'سنة '+dbY:'كل السنوات',K=(a,b,c,d)=>`<div class="k"><small>${a}</small><b class="${d||''}">${b}</b>${c?`<small>${c}</small>`:''}</div>`;
   const tM=v=>M(v),tT=v=>fmt(v,3)+' طن',tN=v=>String(v),unitL=mm?'شهر':'سنة';
   el.innerHTML=`<div class="dtop"><div class="dseg"><button type="button" class="${mm?'on':''}" data-dbm="m">شهري</button><button type="button" class="${mm?'':'on'}" data-dbm="y">سنوي</button></div>${mm?`<select id="dbyr" aria-label="السنة">${yrs.map(y=>`<option value="${y}"${y===dbY?' selected':''}>${y}</option>`).join('')}</select>`:''}
-   <div class="dq"><button class="btn" type="button" data-dgo="buy">＋ شراء</button><button class="btn" type="button" data-dgo="sell">＋ بيع</button><button class="btn ghost" type="button" data-dgo="exp">＋ مصروف</button><button class="btn ghost" type="button" data-dgo="ct">العملاء والدفعات</button><button class="btn ghost" type="button" data-dgo="cap">رأس المال</button></div></div>
+   <div class="dq"><button class="btn" type="button" data-dgo="buy">＋ شراء</button><button class="btn" type="button" data-dgo="sell">＋ بيع</button><button class="btn ghost" type="button" data-dgo="ct">العملاء والدفعات</button><button class="btn ghost" type="button" data-dgo="cap">رأس المال</button></div></div>
   ${T.length?'':'<div class="warn">لسه مفيش عمليات مسجلة. ابدأ بتسجيل أول عملية شراء أو بيع من الأزرار فوق وهتظهر الرسوم هنا تلقائي.</div>'}
   <div class="dk">${K('المشتريات — '+per,M(cur.bv),fmt(cur.bq,3)+' طن'+(PP.length&&prv.bv?' — '+(cur.bv>=prv.bv?'▲ ':'▼ ')+fmt(Math.abs((cur.bv-prv.bv)/prv.bv*100),1)+'٪ عن '+py:''))}${K('المبيعات — '+per,M(cur.sv),fmt(cur.sq,3)+' طن'+(PP.length&&prv.sv?' — '+(cur.sv>=prv.sv?'▲ ':'▼ ')+fmt(Math.abs((cur.sv-prv.sv)/prv.sv*100),1)+'٪ عن '+py:''))}${K('ربح المبيعات',M(cur.pf),'هامش '+fmt(margin,1)+'٪',cur.pf>=0?'pos':'neg')}${K('العملاء النشطين',cur.cu.size,'مصانع موردة: '+cur.fa.size)}</div>
   <div class="dgrid">
