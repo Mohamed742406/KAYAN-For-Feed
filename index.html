@@ -44,6 +44,7 @@ input,select,textarea{width:100%;padding:9px;border:1px solid var(--line);border
 .seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .seg button{flex:1;border:0;padding:9px;background:var(--bg);cursor:pointer}
 .seg button.on.b{background:var(--buy);color:#fff}.seg button.on.s{background:var(--sell);color:#fff}
+.kseg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}.kseg button{flex:1;border:0;padding:9px;background:var(--bg);cursor:pointer}.kseg button.on.i{background:var(--sell);color:#fff}.kseg button.on.o{background:var(--buy);color:#fff}
 .btn{background:var(--wheat);color:#1d2b3a;border:0;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer}
 .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink);font-weight:500}
 .tot{grid-column:1/-1;color:var(--mute)}
@@ -70,7 +71,7 @@ th{color:var(--mute);font-weight:500}
 @media (max-width:560px){.orow{grid-template-columns:1fr 1fr}}
 .warn{background:rgba(224,165,38,.16);border:1px solid var(--wheat);border-radius:10px;padding:10px 14px;margin:10px 0;font-size:.92rem}
 .warn.bad{background:rgba(180,68,47,.14);border-color:var(--buy)}
-#cats,#kcats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+#cats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
 #inv .k{background:#fff;color:#000;border:1px solid #999}
 #inv{display:none}
 @media print{body>.wrap{display:none}#inv{display:block;color:#000;background:#fff;padding:24px;font-size:14px}
@@ -238,11 +239,12 @@ th{color:var(--mute);font-weight:500}
   <h2>رأس المال</h2>
   <p class="sub" style="margin-bottom:8px">سجّل رأس المال اللي بتشتغل بيه، وزوّده في أي وقت (إضافة) أو اسحب منه. النظام بيحسب عليه المشتريات والمبيعات والمصروفات ويطلّع السيولة المتاحة، وبيظهر ملخصه في أعلى الصفحة. الأرباح والخسائر بتتضاف أو بتتخصم من رأس المال تلقائي، والسحب الشخصي بيخصم منه بس من غير ما يأثر على الأرباح أو الحسابات.</p>
   <form class="g" id="kf">
-    <div><label for="kt">النوع</label><select id="kt"><option value="in">إضافة / زيادة رأس المال</option><option value="out">سحب شخصي (أخويا، البيت...) — خارج المصروفات والأرباح</option></select></div>
-    <div id="kcw" hidden style="grid-column:1/-1"><label for="kc">لمين / الغرض — السحب الشخصي مش بيدخل في مصروفات العمليات ولا في تكلفة العمليات ولا في الأرباح، بيخصم من رأس المال والسيولة بس</label><div id="kcats"></div><input id="kc" list="kcl" placeholder="اكتب الجهة أو اضغط على زر بالأعلى (أخويا، البيت...)"><datalist id="kcl"></datalist></div>
+    <div><label>النوع</label><div class="kseg" id="ktseg"><button type="button" class="i on" data-kt="in">إضافة / زيادة رأس المال</button><button type="button" class="o" data-kt="out">سحب</button></div><input type="hidden" id="kt" value="in"></div>
+    <div id="kcw" hidden style="grid-column:1/-1"><label for="kc">لمين السحب؟ — اكتب الاسم أو الجهة بنفسك (السحب مش بيدخل في مصروفات العمليات ولا الأرباح، بيخصم من رأس المال والسيولة بس)</label><input id="kc" placeholder="اكتب اسم الشخص أو الجهة"></div>
+
     <div><label for="kd">التاريخ</label><input id="kd" type="date" required></div>
     <div><label for="ka">المبلغ (ج.م)</label><input id="ka" type="number" step="0.01" min="0.01" required></div>
-    <div><label for="kn">ملاحظة</label><input id="kn" placeholder="رأس مال افتتاحي، زيادة، شريك..."></div>
+    <div><label for="kn" id="knl">ملاحظة</label><input id="kn" placeholder="رأس مال افتتاحي، زيادة، شريك..."></div>
     <div class="tot" id="kp"></div>
     <div class="err" id="ke" role="alert"></div>
     <button class="btn" type="submit">حفظ</button>
@@ -694,13 +696,11 @@ function renderK(F){
   $('knb').innerHTML=c>0?K('المشتريات ÷ رأس المال',pc(F.bv,c),M(F.bv))+K('المبيعات ÷ رأس المال',pc(F.sv,c),M(F.sv))+K('المصروفات (نقل + رحلات) ÷ رأس المال',pc(F.tr+F.exT,c),M(F.tr+F.exT))+K('السيولة المتبقية ÷ رأس المال',pc(F.cash,c),M(F.cash))+K('العائد على رأس المال',pc(F.gain,c),M(F.gain)):'<div class="empty" style="grid-column:1/-1">سجّل رأس المال أولًا لتظهر النسب.</div>';
   let run=0;const A=capSort(S.cap).map(x=>{run+=x.kind==='in'?x.amt:-x.amt;return{...x,run}}).reverse();
   $('ktb').innerHTML=A.length?A.map(x=>`<tr><td>${x.date}</td><td><span class="tag ${x.kind==='in'?'s':'b'}">${x.kind==='in'?'إضافة':'سحب'}</span>${x.cat?' '+esc(x.cat):''}</td><td class="${x.kind==='in'?'pos':'neg'}">${x.kind==='in'?'+':'−'}${M(x.amt)}</td><td>${M(x.run)}</td><td style="white-space:normal">${esc(x.note||'')}</td><td><button class="x" data-kd="${x.id}" aria-label="حذف">✕</button></td></tr>`).join(''):'<tr><td colspan="6" class="empty">لا توجد حركات رأس مال بعد.</td></tr>';
-  const KC=kcats();$('kcats').innerHTML=KC.map((c,i)=>`<span style="display:inline-flex"><button type="button" class="btn ghost" data-kcat="${esc(c)}">${esc(c)}</button><button type="button" class="x" data-kcd="${i}" title="حذف من الأزرار" aria-label="حذف">✕</button></span>`).join('');
-  $('kcl').innerHTML=[...new Set(KC.concat(S.cap.map(x=>x.cat).filter(Boolean)))].map(c=>`<option value="${esc(c)}">`).join('');
   const by={};S.cap.filter(x=>x.kind==='out').forEach(x=>{const c=x.cat||'بدون جهة',o=by[c]||(by[c]={n:0,v:0});o.n++;o.v+=x.amt});
   $('kbyc').innerHTML=Object.keys(by).length?Object.entries(by).sort((a,b)=>b[1].v-a[1].v).map(([c,o])=>`<tr><td>${esc(c)}</td><td>${o.n}</td><td class="neg">${M(o.v)}</td><td>${pc(o.v,F.cIn)}</td></tr>`).join('')+`<tr><th>الإجمالي</th><th>${S.cap.filter(x=>x.kind==='out').length}</th><th>${M(F.cOut)}</th><th>${pc(F.cOut,F.cIn)}</th></tr>`:'<tr><td colspan="4" class="empty">لا توجد مسحوبات شخصية.</td></tr>';
   kvis();kpv()}
-const KCD=['أخويا','البيت','شخصي','أخرى'],kcats=()=>S.kcats||(S.kcats=KCD.slice());
-function kvis(){$('kcw').hidden=$('kt').value!=='out'}
+function kvis(){const o=$('kt').value==='out';$('kcw').hidden=!o;document.querySelectorAll('#ktseg button').forEach(b=>b.classList.toggle('on',b.dataset.kt===$('kt').value));$('knl').textContent=o?'السحب كان إيه؟':'ملاحظة';$('kn').placeholder=o?'اكتب السحب كان إيه (مثلًا: مصاريف البيت، سلفة...)':'رأس مال افتتاحي، زيادة، شريك...'}
+document.querySelectorAll('#ktseg button').forEach(b=>b.onclick=()=>{$('kt').value=b.dataset.kt;$('kt').dispatchEvent(new Event('input'))});
 $('kt').addEventListener('input',kvis);
 function kpv(){const a=+$('ka').value,d=$('kd').value;if(!(a>0)||!d){$('kp').textContent='';return}const F=fin(),s=$('kt').value==='in'?1:-1;$('kp').textContent='رأس المال الحالي بعد العملية: '+M(F.eq+s*a)+' — السيولة المتاحة بعدها: '+M(F.cash+s*a)}
 ['kt','kd','ka'].forEach(i=>$(i).addEventListener('input',kpv));
@@ -709,14 +709,11 @@ $('kf').onsubmit=e=>{e.preventDefault();const amt=+$('ka').value,k2=$('kt').valu
   if(!(amt>0)||!date)return er('اكتب المبلغ والتاريخ.');
   if(!capOK([...S.cap,{id:Infinity,date,amt,kind:k2}]))return er('السحب ده أكبر من رأس المال الحالي شامل الأرباح ('+M(Math.max(fin().eq,0))+').');
   const cat=k2==='out'?$('kc').value.trim():'';
-  if(k2==='out'&&!cat)return er('اكتب لمين السحب أو الغرض منه (مثلًا أخويا أو البيت).');
+  if(k2==='out'&&!cat)return er('اكتب لمين السحب.');
   if(k2==='out'&&amt>fin().cash+0.005&&!confirm('المبلغ أكبر من السيولة المتاحة حاليًا ('+M(fin().cash)+') — السيولة هتبقى بالسالب. متابعة؟'))return;
-  if(cat){const L=kcats();if(!L.includes(cat))L.push(cat)}
   const o={id:uid(),date,amt,kind:k2,note:$('kn').value.trim()};if(cat)o.cat=cat;S.cap.push(o);save();er('');$('ka').value='';$('kn').value='';$('kc').value='';render()};
 document.addEventListener('click',e=>{const d=e.target.dataset;if(!d)return;
-  if(d.kcat){$('kc').value=d.kcat;$('ka').focus()}
-  else if(d.kcd!==undefined){const L=kcats(),c=L[+d.kcd];if(c&&confirm('حذف "'+c+'" من الأزرار؟ السحوبات المسجلة بيها مش هتتأثر.')){L.splice(+d.kcd,1);save();render()}}
-  else if(d.capgo){show('cap');$('kt').value='in';$('kf').scrollIntoView({behavior:'smooth'});$('ka').focus()}
+  if(d.capgo){show('cap');$('kt').value='in';kvis();kpv();$('kf').scrollIntoView({behavior:'smooth'});$('ka').focus()}
   else if(d.kd){const L=S.cap.filter(x=>String(x.id)!==d.kd);
     if(!capOK(L))alert('مينفعش تحذف الحركة دي، لأن رأس المال الحالي هيبقى بالسالب. احذف السحوبات الأول.');
     else if(confirm('حذف حركة رأس المال دي؟')){S.cap=L;save();render()}}});
