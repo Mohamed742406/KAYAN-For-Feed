@@ -77,6 +77,24 @@ th{color:var(--mute);font-weight:500}
 #inv{display:none}
 @media print{body>.wrap{display:none}#inv{display:block;color:#000;background:#fff;padding:24px;font-size:14px}
 #inv table{min-width:0;width:100%}#inv th,#inv td{border:1px solid #999;color:#000}}
+
+.dtop{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.dseg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.dseg button{border:0;padding:9px 18px;background:var(--card);cursor:pointer;font-weight:500}
+.dseg button.on{background:var(--ink);color:var(--bg)}
+.dtop select{width:auto;min-width:100px}
+.dq{display:flex;gap:6px;flex-wrap:wrap;margin-inline-start:auto}
+.dq .btn{padding:8px 12px;font-size:.88rem}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin-bottom:14px}
+.dgrid .card{margin:0;min-width:0}.dgrid .wide{grid-column:1/-1}
+.dl{display:inline-flex;align-items:center;gap:5px;font-size:.85rem;color:var(--mute);margin-inline-end:14px}.dl i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.hb{margin-bottom:10px}.hbt{display:flex;justify-content:space-between;gap:8px;font-size:.92rem}
+.hbk{height:10px;background:var(--bg);border-radius:99px;overflow:hidden;margin:3px 0}.hbk i{display:block;height:100%;border-radius:99px}
+.dn{display:flex;gap:16px;align-items:center;flex-wrap:wrap}.dn svg{width:150px;height:150px;flex:none}
+.dn ul{list-style:none;margin:0;padding:0;flex:1;min-width:150px;font-size:.88rem}.dn li{display:flex;gap:6px;align-items:center;padding:2px 0}.dn li i{width:10px;height:10px;border-radius:50%;flex:none}.dn li span{flex:1}
+.dh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:6px}.dh h2{margin:0}
+.dk{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:14px}
+.dk .k b{font-size:1.3rem}
 </style>
 </head>
 <body>
@@ -89,7 +107,9 @@ th{color:var(--mute);font-weight:500}
 <div id="demo"></div>
 <div id="warn"></div>
 <div class="grid" id="kpis"></div>
-<div class="tabs" id="tabs"><button data-tab="ops">العمليات</button><button data-tab="stock">المخزون والجرد</button><button data-tab="cap">رأس المال</button><button data-tab="sort">الفرز</button><button data-tab="ct">المصانع والعملاء</button><button data-tab="exp">مصروفات الرحلات</button><button data-tab="rep">التقرير والحسابات</button><button data-tab="set">الأصناف والنسخ الاحتياطي</button></div>
+<div class="tabs" id="tabs"><button data-tab="dash">لوحة التحكم</button><button data-tab="ops">العمليات</button><button data-tab="stock">المخزون والجرد</button><button data-tab="cap">رأس المال</button><button data-tab="sort">الفرز</button><button data-tab="ct">المصانع والعملاء</button><button data-tab="exp">مصروفات الرحلات</button><button data-tab="rep">التقرير والحسابات</button><button data-tab="set">الأصناف والنسخ الاحتياطي</button></div>
+
+<div class="pane" data-p="dash" id="dash"></div>
 
 <div class="card pane" data-p="ops">
   <h2 id="fh">تسجيل عملية جديدة</h2>
@@ -221,8 +241,8 @@ th{color:var(--mute);font-weight:500}
   <h2>رأس المال</h2>
   <p class="sub" style="margin-bottom:8px">سجّل رأس المال اللي بتشتغل بيه، وزوّده في أي وقت (إضافة) أو اسحب منه. النظام بيحسب عليه المشتريات والمبيعات والمصروفات ويطلّع السيولة المتاحة، وبيظهر ملخصه في أعلى الصفحة.</p>
   <form class="g" id="kf">
-    <div><label>النوع</label><input type="hidden" id="kt" value="in"><div class="seg" id="kseg" role="group" aria-label="نوع حركة رأس المال"><button type="button" class="s on" data-kt="in" aria-pressed="true">إضافة رأس مال</button><button type="button" class="b" data-kt="out" aria-pressed="false">سحب شخصي</button></div></div>
-    <div id="kcw" hidden style="grid-column:1/-1"><label for="kc">السحب كان على إيه ولمين؟ — السحب الشخصي مش بيدخل في المصروفات ولا الأرباح، بيخصم من رأس المال والسيولة بس</label><input id="kc" placeholder="اكتب بنفسك: مثلاً مصاريف البيت، أو سلفة لأخويا أحمد..."></div>
+    <div><label for="kt">النوع</label><select id="kt"><option value="in">إضافة / زيادة رأس المال</option><option value="out">سحب شخصي (أخويا، البيت...) — خارج المصروفات والأرباح</option></select></div>
+    <div id="kcw" hidden style="grid-column:1/-1"><label for="kc">لمين / الغرض — السحب الشخصي مش بيدخل في مصروفات الرحلات ولا في تكلفة العمليات ولا في الأرباح، بيخصم من رأس المال والسيولة بس</label><div id="kcats"></div><input id="kc" list="kcl" placeholder="اكتب الجهة أو اضغط على زر بالأعلى (أخويا، البيت...)"><datalist id="kcl"></datalist></div>
     <div><label for="kd">التاريخ</label><input id="kd" type="date" required></div>
     <div><label for="ka">المبلغ (ج.م)</label><input id="ka" type="number" step="0.01" min="0.01" required></div>
     <div><label for="kn">ملاحظة</label><input id="kn" placeholder="رأس مال افتتاحي، زيادة، شريك..."></div>
@@ -386,7 +406,7 @@ function render(){
   $('tb').innerHTML=rows.length?rows.map(t=>{const v=V(t),p=pf[t.id],tc=t.tr+(xe[t.id]||0),rem=Math.round((v-t.paid)*100)/100;
     return`<tr><td>${no[t.id]}</td><td>${t.date}</td><td><span class="tag ${t.kind==='buy'?'b':'s'}">${t.kind==='buy'?'شراء':'بيع'}</span></td><td>${esc(t.party)}</td><td>${esc(t.grade||tn(t.tid))}${t.ch?'<br><small>'+esc(t.ch)+'</small>':''}</td><td>${fmt(t.qty,3)}</td><td>${M(t.price)}</td>${bo?'':`<td>${t.kind==='sell'?M(ca[t.id]||0):'—'}</td>`}<td${(xd[t.id]||[]).length?` title="${esc((xd[t.id]).map(x=>x.cat+': '+fmt(x.amt)).join('\n'))}"`:''}>${M(tc)}${(xd[t.id]||[]).length?' <small class="sub">('+xd[t.id].length+' مصروف)</small>':''}</td><td>${M(v)}${t.disc>0?' <small class="sub">(بعد خصم '+fmt(t.disc)+')</small>':''}</td><td>${t.kind==='buy'?M(v+tc):M(v-tc)+' <small class="sub">صافي</small>'}</td><td>${M(t.paid)}</td><td class="${rem>0?'neg':''}">${rem>0?M(rem):'مسدّد'}</td><td>${PM[pmOf(t)]}</td>${bo?'':`<td class="${p>=0?'pos':'neg'}">${p===undefined?'—':M(p)}</td>`}<td><button class="x" data-inv="${t.id}" title="طباعة فاتورة" aria-label="طباعة فاتورة">🖨</button><button class="x" data-ted="${t.id}" title="تعديل" aria-label="تعديل العملية">✎</button><button class="x" data-del="${t.id}" aria-label="حذف العملية">✕</button></td></tr>`}).join('')
    :'<tr><td colspan="'+(bo?13:15)+'" class="empty">لا توجد عمليات مطابقة.</td></tr>';
-  renderX();renderC();renderA(profit,exT,exU);renderS(C0);renderK(F);demoUI();
+  renderX();renderC();renderA(profit,exT,exU);renderS(C0);renderK(F);demoUI();dbRender(C0);
 }
 
 document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{kind=b.dataset.t;
@@ -726,13 +746,13 @@ const capAt=d=>S.cap.filter(x=>x.date<=d).reduce((a,x)=>a+(x.kind==='in'?x.amt:-
 function capHead(F){
   if(!S.cap.length)return'<span class="capt">رأس المال</span><strong class="cv">غير مسجّل</strong><div class="capl" style="opacity:.85"><span style="opacity:1">سجّل رأس المال لتظهر السيولة المتاحة ونسبة المشتريات والمبيعات والمصروفات عليه.</span></div><button class="btn" type="button" data-capgo="1">＋ إضافة رأس المال</button>';
   const g=F.gain,cl=x=>x>=-0.005?'hp':'hn',pp=x=>F.cap>0?M(x)+' · '+pc(x,F.cap):M(x);
-  return`<span class="capt">رأس المال الحالي (بعد الأرباح والخسائر والمسحوبات)</span><strong class="cv">${M(F.eq)}</strong>
-  <div class="capl"><span>رأس المال المسجّل (المضاف − المسحوبات)</span><span>${M(F.cap)}</span></div>
+  return`<span class="capt">رأس المال</span><strong class="cv">${M(F.cap)}</strong>
   <div class="capl"><span>السيولة المتاحة (الكاش)</span><span class="${cl(F.cash)}">${M(F.cash)}</span></div>
   <div class="capl"><span>المشتريات</span><span>${pp(F.bv)}</span></div>
   <div class="capl"><span>المبيعات</span><span>${pp(F.sv)}</span></div>
   <div class="capl"><span>المصروفات (نقل + رحلات)</span><span>${pp(F.tr+F.exT)}</span></div>
   ${F.cOut>0?`<div class="capl"><span>مسحوبات شخصية (خارج الأرباح)</span><span>${M(F.cOut)}</span></div>`:''}
+  <div class="capl"><span>إجمالي رأس المال الحالي</span><span>${M(F.eq)}</span></div>
   <div class="capl"><span>الربح / الخسارة على رأس المال</span><span class="${cl(g)}">${g>0.005?'+':''}${M(g)}${F.cap>0?' ('+pc(g,F.cap)+')':''}</span></div>
   <button class="btn" type="button" data-capgo="1">＋ زيادة رأس المال</button>`}
 function renderK(F){
@@ -743,31 +763,102 @@ function renderK(F){
   $('knb').innerHTML=c>0?K('المشتريات ÷ رأس المال',pc(F.bv,c),M(F.bv))+K('المبيعات ÷ رأس المال',pc(F.sv,c),M(F.sv))+K('المصروفات (نقل + رحلات) ÷ رأس المال',pc(F.tr+F.exT,c),M(F.tr+F.exT))+K('السيولة المتبقية ÷ رأس المال',pc(F.cash,c),M(F.cash))+K('العائد على رأس المال',pc(F.gain,c),M(F.gain)):'<div class="empty" style="grid-column:1/-1">سجّل رأس المال أولًا لتظهر النسب.</div>';
   let run=0;const A=capSort(S.cap).map(x=>{run+=x.kind==='in'?x.amt:-x.amt;return{...x,run}}).reverse();
   $('ktb').innerHTML=A.length?A.map(x=>`<tr><td>${x.date}</td><td><span class="tag ${x.kind==='in'?'s':'b'}">${x.kind==='in'?'إضافة':'سحب'}</span>${x.cat?' '+esc(x.cat):''}</td><td class="${x.kind==='in'?'pos':'neg'}">${x.kind==='in'?'+':'−'}${M(x.amt)}</td><td>${M(x.run)}</td><td style="white-space:normal">${esc(x.note||'')}</td><td><button class="x" data-kd="${x.id}" aria-label="حذف">✕</button></td></tr>`).join(''):'<tr><td colspan="6" class="empty">لا توجد حركات رأس مال بعد.</td></tr>';
+  const KC=kcats();$('kcats').innerHTML=KC.map((c,i)=>`<span style="display:inline-flex"><button type="button" class="btn ghost" data-kcat="${esc(c)}">${esc(c)}</button><button type="button" class="x" data-kcd="${i}" title="حذف من الأزرار" aria-label="حذف">✕</button></span>`).join('');
+  $('kcl').innerHTML=[...new Set(KC.concat(S.cap.map(x=>x.cat).filter(Boolean)))].map(c=>`<option value="${esc(c)}">`).join('');
   const by={};S.cap.filter(x=>x.kind==='out').forEach(x=>{const c=x.cat||'بدون جهة',o=by[c]||(by[c]={n:0,v:0});o.n++;o.v+=x.amt});
   $('kbyc').innerHTML=Object.keys(by).length?Object.entries(by).sort((a,b)=>b[1].v-a[1].v).map(([c,o])=>`<tr><td>${esc(c)}</td><td>${o.n}</td><td class="neg">${M(o.v)}</td><td>${pc(o.v,F.cIn)}</td></tr>`).join('')+`<tr><th>الإجمالي</th><th>${S.cap.filter(x=>x.kind==='out').length}</th><th>${M(F.cOut)}</th><th>${pc(F.cOut,F.cIn)}</th></tr>`:'<tr><td colspan="4" class="empty">لا توجد مسحوبات شخصية.</td></tr>';
   kvis();kpv()}
-function setKT(v){$('kt').value=v;document.querySelectorAll('#kseg button').forEach(b=>{const on=b.dataset.kt===v;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});$('kt').dispatchEvent(new Event('input'))}
-$('kseg').addEventListener('click',e=>{const v=e.target.dataset&&e.target.dataset.kt;if(v)setKT(v)});
+const KCD=['أخويا','البيت','شخصي','أخرى'],kcats=()=>S.kcats||(S.kcats=KCD.slice());
 function kvis(){$('kcw').hidden=$('kt').value!=='out'}
 $('kt').addEventListener('input',kvis);
-function kpv(){const a=+$('ka').value,d=$('kd').value;if(!(a>0)||!d){$('kp').textContent='';return}const F=fin(),s=$('kt').value==='in'?1:-1;$('kp').textContent='رأس المال الحالي بعد العملية: '+M(F.eq+s*a)+' — السيولة المتاحة بعدها: '+M(F.cash+s*a)}
+function kpv(){const a=+$('ka').value,d=$('kd').value;if(!(a>0)||!d){$('kp').textContent='';return}const F=fin(),s=$('kt').value==='in'?1:-1;$('kp').textContent='رأس المال بعد العملية: '+M(F.cap+s*a)+' — السيولة المتاحة بعدها: '+M(F.cash+s*a)}
 ['kt','kd','ka'].forEach(i=>$(i).addEventListener('input',kpv));
 $('kd').value=today();
 $('kf').onsubmit=e=>{e.preventDefault();const amt=+$('ka').value,k2=$('kt').value,date=$('kd').value,er=m=>{$('ke').textContent=m};
   if(!(amt>0)||!date)return er('اكتب المبلغ والتاريخ.');
   if(!capOK([...S.cap,{id:Infinity,date,amt,kind:k2}]))return er('السحب ده أكبر من رأس المال المتاح في التاريخ ده ('+M(Math.max(capAt(date),0))+').');
   const cat=k2==='out'?$('kc').value.trim():'';
-  if(k2==='out'&&!cat)return er('اكتب السحب كان على إيه ولمين.');
+  if(k2==='out'&&!cat)return er('اكتب لمين السحب أو الغرض منه (مثلًا أخويا أو البيت).');
   if(k2==='out'&&amt>fin().cash+0.005&&!confirm('المبلغ أكبر من السيولة المتاحة حاليًا ('+M(fin().cash)+') — السيولة هتبقى بالسالب. متابعة؟'))return;
+  if(cat){const L=kcats();if(!L.includes(cat))L.push(cat)}
   const o={id:uid(),date,amt,kind:k2,note:$('kn').value.trim()};if(cat)o.cat=cat;S.cap.push(o);save();er('');$('ka').value='';$('kn').value='';$('kc').value='';render()};
 document.addEventListener('click',e=>{const d=e.target.dataset;if(!d)return;
-  if(d.capgo){show('cap');setKT('in');$('kf').scrollIntoView({behavior:'smooth'});$('ka').focus()}
+  if(d.kcat){$('kc').value=d.kcat;$('ka').focus()}
+  else if(d.kcd!==undefined){const L=kcats(),c=L[+d.kcd];if(c&&confirm('حذف "'+c+'" من الأزرار؟ السحوبات المسجلة بيها مش هتتأثر.')){L.splice(+d.kcd,1);save();render()}}
+  else if(d.capgo){show('cap');$('kt').value='in';$('kf').scrollIntoView({behavior:'smooth'});$('ka').focus()}
   else if(d.kd){const L=S.cap.filter(x=>String(x.id)!==d.kd);
     if(!capOK(L))alert('مينفعش تحذف الحركة دي، لأن سحوبات بعدها هتبقى أكبر من رأس المال. احذف السحوبات الأول.');
     else if(confirm('حذف حركة رأس المال دي؟')){S.cap=L;save();render()}}});
 
+/* ===== لوحة التحكم ===== */
+const MN=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+let dbM='m',dbY='';
+const dbPal=['#2f7d5b','#e0a526','#3f7fbf','#b4442f','#8a5fb5','#4aa3a3','#8a96a3'];
+const dbK=n=>{const a=Math.abs(n),g=n<0?'-':'';return a>=1e6?g+(a/1e6).toFixed(1).replace(/\.0$/,'')+'M':a>=1e3?g+(a/1e3).toFixed(a>=1e4?0:1).replace(/\.0$/,'')+'k':g+Math.round(a)};
+const dbNice=r=>{if(!(r>0))return 1;const p=Math.pow(10,Math.floor(Math.log10(r))),f=r/p;return(f<=1?1:f<=2?2:f<=5?5:10)*p};
+const dbEmpty='<div class="empty">لا توجد بيانات في هذه الفترة.</div>';
+function dbLegend(ser){return'<div style="margin-bottom:6px">'+ser.map(x=>`<span class="dl"><i style="background:${x.c}"></i>${x.n}</span>`).join('')+'</div>'}
+function dbChart(labels,ser,tf){
+  const W=720,H=290,pl=10,pr=52,pt=14,pb=30,n=labels.length,iw=W-pl-pr,ih=H-pt-pb,gw=iw/n,vals=ser.flatMap(x=>x.v);
+  if(!vals.some(v=>v))return dbEmpty;
+  let mx=Math.max(0,...vals),mn=Math.min(0,...vals);const st=dbNice((mx-mn)/4);mx=Math.ceil(mx/st-1e-9)*st;mn=Math.floor(mn/st+1e-9)*st;
+  const y=v=>pt+ih-(v-mn)/(mx-mn)*ih,cx=i=>W-pr-gw*(i+.5),bs=ser.filter(x=>x.t==='b'),ls=ser.filter(x=>x.t==='l'),cnt=Math.round((mx-mn)/st);
+  let g='';
+  for(let k=0;k<=cnt;k++){const v=mn+k*st;g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"${Math.abs(v)<1e-9?'':' stroke-dasharray="3 4"'}/><text x="${W-pr+6}" y="${y(v)+4}" font-size="11" fill="var(--mute)">${dbK(v)}</text>`}
+  labels.forEach((l,i)=>{g+=`<text x="${cx(i)}" y="${H-9}" font-size="${n>8?10:12}" text-anchor="middle" fill="var(--mute)">${n>8?String(l).slice(0,4):l}</text>`});
+  if(bs.length){const bw=Math.min(26,gw*.72/bs.length);
+    bs.forEach((x,j)=>x.v.forEach((v,i)=>{const x0=cx(i)-bw*bs.length/2+j*bw,t=Math.min(y(0),y(v)),h=v?Math.max(Math.abs(y(v)-y(0)),1.5):0;
+      if(v)g+=`<rect x="${x0}" y="${t}" width="${bw-1.5}" height="${h}" rx="3" fill="${x.c}"><title>${labels[i]} — ${x.n}: ${tf(v)}</title></rect>`}))}
+  ls.forEach(x=>{const pts=x.v.map((v,i)=>[cx(i),y(v)]);
+    g+=`<path d="${pts.map((q,i)=>(i?'L':'M')+q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' ')}" fill="none" stroke="${x.c}" stroke-width="2.5" stroke-linejoin="round"/>`;
+    x.v.forEach((v,i)=>{g+=`<circle cx="${pts[i][0]}" cy="${pts[i][1]}" r="3.5" fill="var(--card)" stroke="${x.c}" stroke-width="2"><title>${labels[i]} — ${x.n}: ${tf(v)}</title></circle>`})});
+  return dbLegend(ser)+`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" style="display:block">${g}</svg>`}
+function dbHB(rows,col){
+  if(!rows.length)return dbEmpty;const mx=rows[0].v||1;
+  return rows.map((r,i)=>`<div class="hb"><div class="hbt"><span>${i+1}. ${esc(r.n)}</span><b>${M(r.v)}</b></div><div class="hbk"><i style="width:${Math.max(r.v/mx*100,2)}%;background:${col}"></i></div><small class="sub">${r.s}</small></div>`).join('')}
+function dbDonut(items){
+  const tot=items.reduce((a,x)=>a+x.v,0);if(!(tot>0))return dbEmpty;
+  const top=items.slice(0,6),rest=items.slice(6).reduce((a,x)=>a+x.v,0);if(rest>0)top.push({n:'أخرى',v:rest});
+  let off=0,sg='';
+  top.forEach((it,i)=>{const p=it.v/tot*100;sg+=`<circle r="15.9155" cx="21" cy="21" fill="none" stroke="${dbPal[i%7]}" stroke-width="6" stroke-dasharray="${p} ${100-p}" stroke-dashoffset="${-off}" transform="rotate(-90 21 21)"><title>${esc(it.n)}: ${M(it.v)} (${fmt(p,1)}٪)</title></circle>`;off+=p});
+  return`<div class="dn"><svg viewBox="0 0 42 42" role="img"><circle r="15.9155" cx="21" cy="21" fill="none" stroke="var(--line)" stroke-width="6"/>${sg}<text x="21" y="22.5" text-anchor="middle" font-size="5" font-weight="700" fill="var(--ink)">${dbK(tot)}</text></svg><ul>${top.map((it,i)=>`<li><i style="background:${dbPal[i%7]}"></i><span>${esc(it.n)}</span><b>${fmt(it.v/tot*100,1)}٪</b></li>`).join('')}</ul></div>`}
+function dbRender(C){
+  const el=$('dash');if(!el)return;
+  const T=S.tx,pf=C.pf,cy=String(new Date().getFullYear()),yrs=[...new Set(T.map(t=>t.date.slice(0,4)).concat([cy]))].sort();
+  if(!dbY||!yrs.includes(dbY))dbY=cy;
+  const mm=dbM==='m',keys=mm?MN.map((_,i)=>dbY+'-'+String(i+1).padStart(2,'0')):yrs,lab=mm?MN:yrs,idx={};keys.forEach((k,i)=>idx[k]=i);
+  const mkB=()=>({bv:0,sv:0,bq:0,sq:0,pf:0,cu:new Set(),fa:new Set()}),add=(o,t)=>{const v=V(t);if(t.kind==='buy'){o.bv+=v;o.bq+=t.qty;o.fa.add(t.party)}else{o.sv+=v;o.sq+=t.qty;o.pf+=pf[t.id]||0;o.cu.add(t.party)}};
+  const B=keys.map(mkB);T.forEach(t=>{const i=idx[mm?t.date.slice(0,7):t.date.slice(0,4)];if(i!==undefined)add(B[i],t)});
+  const P=mm?T.filter(t=>t.date.slice(0,4)===dbY):T,cur=mkB();P.forEach(t=>add(cur,t));
+  const py=String(+dbY-1),PP=mm?T.filter(t=>t.date.slice(0,4)===py):[],prv=mkB();PP.forEach(t=>add(prv,t));
+  const dl=(a,b,neutral)=>{if(!PP.length||!b)return'';const q=(a-b)/Math.abs(b)*100;return`<small class="${neutral?'sub':q>=0?'pos':'neg'}">${q>=0?'▲':'▼'} ${fmt(Math.abs(q),1)}٪ عن ${py}</small>`};
+  const rk=kd=>{const m={};P.filter(t=>t.kind===kd).forEach(t=>{const o=m[t.party]||(m[t.party]={n:t.party,v:0,q:0,p:0});o.v+=V(t);o.q+=t.qty;o.p+=pf[t.id]||0});return Object.values(m).sort((a,b)=>b.v-a.v)};
+  const cu=rk('sell'),fa=rk('buy');
+  const grp=f=>{const m={};P.filter(t=>t.kind==='sell').forEach(t=>{const k=f(t);m[k]=(m[k]||0)+V(t)});return Object.entries(m).map(([n,v])=>({n,v})).sort((a,b)=>b.v-a.v)};
+  const debt=[...new Set(T.filter(t=>t.kind==='sell').map(t=>t.party))].map(n=>({n,r:pstat(n,pf).r})).filter(x=>x.r>0.5).sort((a,b)=>b.r-a.r).slice(0,6).map(x=>({n:x.n,v:x.r,s:'مستحق لنا تحصيله'}));
+  const margin=cur.sv>0?cur.pf/cur.sv*100:0,per=mm?'سنة '+dbY:'كل السنوات',K=(a,b,c,d)=>`<div class="k"><small>${a}</small><b class="${d||''}">${b}</b>${c?`<small>${c}</small>`:''}</div>`;
+  const tM=v=>M(v),tT=v=>fmt(v,3)+' طن',tN=v=>String(v),unitL=mm?'شهر':'سنة';
+  el.innerHTML=`<div class="dtop"><div class="dseg"><button type="button" class="${mm?'on':''}" data-dbm="m">شهري</button><button type="button" class="${mm?'':'on'}" data-dbm="y">سنوي</button></div>${mm?`<select id="dbyr" aria-label="السنة">${yrs.map(y=>`<option value="${y}"${y===dbY?' selected':''}>${y}</option>`).join('')}</select>`:''}
+   <div class="dq"><button class="btn" type="button" data-dgo="buy">＋ شراء</button><button class="btn" type="button" data-dgo="sell">＋ بيع</button><button class="btn ghost" type="button" data-dgo="exp">＋ مصروف</button><button class="btn ghost" type="button" data-dgo="ct">العملاء والدفعات</button><button class="btn ghost" type="button" data-dgo="cap">رأس المال</button></div></div>
+  ${T.length?'':'<div class="warn">لسه مفيش عمليات مسجلة. ابدأ بتسجيل أول عملية شراء أو بيع من الأزرار فوق وهتظهر الرسوم هنا تلقائي.</div>'}
+  <div class="dk">${K('المشتريات — '+per,M(cur.bv),fmt(cur.bq,3)+' طن'+(PP.length&&prv.bv?' — '+(cur.bv>=prv.bv?'▲ ':'▼ ')+fmt(Math.abs((cur.bv-prv.bv)/prv.bv*100),1)+'٪ عن '+py:''))}${K('المبيعات — '+per,M(cur.sv),fmt(cur.sq,3)+' طن'+(PP.length&&prv.sv?' — '+(cur.sv>=prv.sv?'▲ ':'▼ ')+fmt(Math.abs((cur.sv-prv.sv)/prv.sv*100),1)+'٪ عن '+py:''))}${K('ربح المبيعات',M(cur.pf),'هامش '+fmt(margin,1)+'٪',cur.pf>=0?'pos':'neg')}${K('العملاء النشطين',cur.cu.size,'مصانع موردة: '+cur.fa.size)}</div>
+  <div class="dgrid">
+   <div class="card wide"><div class="dh"><h2>المشتريات والمبيعات والربح — ${mm?'شهريًا خلال '+dbY:'سنويًا'}</h2></div>${dbChart(lab,[{n:'المشتريات',c:'var(--buy)',t:'b',v:B.map(b=>b.bv)},{n:'المبيعات',c:'var(--sell)',t:'b',v:B.map(b=>b.sv)},{n:'ربح المبيعات',c:'var(--wheat)',t:'l',v:B.map(b=>b.pf)}],tM)}</div>
+   <div class="card"><div class="dh"><h2>الكميات (طن)</h2><span class="sub">لكل ${unitL}</span></div>${dbChart(lab,[{n:'اشتريت',c:'var(--buy)',t:'l',v:B.map(b=>b.bq)},{n:'بعت',c:'var(--sell)',t:'l',v:B.map(b=>b.sq)}],tT)}</div>
+   <div class="card"><div class="dh"><h2>عدد العملاء والمصانع النشطين</h2><span class="sub">لكل ${unitL}</span></div>${dbChart(lab,[{n:'عملاء',c:'#3f7fbf',t:'b',v:B.map(b=>b.cu.size)},{n:'مصانع',c:'var(--wheat)',t:'b',v:B.map(b=>b.fa.size)}],tN)}</div>
+   <div class="card"><div class="dh"><h2>أفضل العملاء (مبيعات)</h2><span class="sub">${per}</span></div>${dbHB(cu.slice(0,8).map(r=>({n:r.n,v:r.v,s:fmt(r.q,3)+' طن — ربح '+M(r.p)})),'var(--sell)')}</div>
+   <div class="card"><div class="dh"><h2>أكبر المصانع (مشتريات)</h2><span class="sub">${per}</span></div>${dbHB(fa.slice(0,8).map(r=>({n:r.n,v:r.v,s:fmt(r.q,3)+' طن'})),'var(--buy)')}</div>
+   <div class="card"><div class="dh"><h2>توزيع المبيعات حسب النوع</h2></div>${dbDonut(grp(t=>t.grade||tn(t.tid)))}</div>
+   <div class="card"><div class="dh"><h2>توزيع المبيعات حسب طريقة البيع</h2></div>${dbDonut(grp(t=>t.ch||'غير محدد'))}</div>
+   <div class="card"><div class="dh"><h2>أعلى مديونيات عند العملاء</h2><span class="sub">الرصيد الحالي</span></div>${dbHB(debt,'var(--wheat)')}</div>
+  </div>`}
+document.addEventListener('click',e=>{const d=e.target.closest?e.target.closest('[data-dbm],[data-dgo]'):null;if(!d)return;
+  if(d.dataset.dbm){dbM=d.dataset.dbm;dbRender(calc())}
+  else{const g=d.dataset.dgo;if(g==='buy'||g==='sell'){show('ops');document.querySelector('.seg button[data-t="'+g+'"]').click();$('f').scrollIntoView({behavior:'smooth'})}else show(g)}});
+document.addEventListener('change',e=>{if(e.target.id==='dbyr'){dbY=e.target.value;dbRender(calc())}});
+
 lrow();applyKind();
-prev();show('ops');render();
+prev();show('dash');render();
 </script>
 </body>
 </html>
