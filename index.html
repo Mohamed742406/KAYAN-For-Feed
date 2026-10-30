@@ -6,10 +6,10 @@
 <title>KAYAN For Feed</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f3f5f6;--card:#fff;--ink:#1d2b3a;--mute:#66768a;--line:#dde3e8;--wheat:#e0a526;--buy:#b4442f;--sell:#2f7d5b;
+:root{--bg:#f3f5f6;--card:#fff;--ink:#1d2b3a;--mute:#66768a;--line:#dde3e8;--wheat:#e0a526;--buy:#b4442f;--sell:#2f7d5b;--hp:#7fe0b2;--hn:#ff9f8a;
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121a22;--card:#1b2631;--ink:#eef2f5;--mute:#94a3b3;--line:#2c3a48;--buy:#e07a63;--sell:#4fb68a}}
-:root[data-theme="dark"]{--bg:#121a22;--card:#1b2631;--ink:#eef2f5;--mute:#94a3b3;--line:#2c3a48;--buy:#e07a63;--sell:#4fb68a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121a22;--card:#1b2631;--ink:#eef2f5;--mute:#94a3b3;--line:#2c3a48;--buy:#e07a63;--sell:#4fb68a;--hp:#1f7a53;--hn:#b4442f}}
+:root[data-theme="dark"]{--bg:#121a22;--card:#1b2631;--ink:#eef2f5;--mute:#94a3b3;--line:#2c3a48;--buy:#e07a63;--sell:#4fb68a;--hp:#1f7a53;--hn:#b4442f}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans Arabic",Tahoma,Arial,sans-serif;line-height:1.6}
 .wrap{max-width:1100px;margin:0 auto;padding:16px}
@@ -17,6 +17,18 @@ h1{font-size:1.5rem;margin:0}h2{font-size:1.05rem;margin:0 0 10px}
 .sub{color:var(--mute);font-size:.9rem;margin:0}
 .stock{background:var(--ink);color:var(--bg);border-radius:12px;padding:16px 20px;border-inline-start:8px solid var(--wheat);margin:14px 0}
 .stock b{font-size:2.4rem;display:block;line-height:1.1}
+.stock{display:flex;gap:16px 28px;flex-wrap:wrap}
+.sk1{flex:1 1 260px;min-width:0}
+.capbox{flex:1 1 330px;min-width:0;border-inline-start:1px solid rgba(128,128,128,.45);padding-inline-start:26px}
+.capbox .capt{opacity:.8}
+.capbox .cv{font-size:1.9rem;line-height:1.25;display:block;font-weight:700}
+.capl{display:flex;justify-content:space-between;gap:12px;font-size:.92rem;padding:2px 0}
+.capl span:first-child{opacity:.8}
+.capl span:last-child{font-weight:700;white-space:nowrap}
+.capbox .btn{margin-top:8px;padding:6px 14px}
+.hp{color:var(--hp)}.hn{color:var(--hn)}
+.stt td:last-child{text-align:end;white-space:nowrap}.stt tr.tt td{font-weight:700;border-top:2px solid var(--line)}
+@media (max-width:700px){.capbox{border-inline-start:0;padding-inline-start:0;border-top:1px solid rgba(128,128,128,.45);padding-top:12px}}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .chip{background:rgba(128,128,128,.2);border-radius:99px;padding:2px 12px;font-size:.9rem}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
@@ -73,11 +85,11 @@ th{color:var(--mute);font-weight:500}
 <p class="sub">شراء وبيع من المصانع — الكميات بالطن</p>
 
 
-<div class="stock"><span>المخزون الحالي</span><b id="stk">0 طن</b><span id="stkv"></span><div class="chips" id="chips"></div></div>
+<div class="stock"><div class="sk1"><span>المخزون الحالي</span><b id="stk">0 طن</b><span id="stkv"></span><div class="chips" id="chips"></div></div><div class="capbox" id="capbox"></div></div>
 <div id="demo"></div>
 <div id="warn"></div>
 <div class="grid" id="kpis"></div>
-<div class="tabs" id="tabs"><button data-tab="ops">العمليات</button><button data-tab="stock">المخزون والجرد</button><button data-tab="sort">الفرز</button><button data-tab="ct">المصانع والعملاء</button><button data-tab="exp">مصروفات الرحلات</button><button data-tab="rep">التقرير والحسابات</button><button data-tab="set">الأصناف والنسخ الاحتياطي</button></div>
+<div class="tabs" id="tabs"><button data-tab="ops">العمليات</button><button data-tab="stock">المخزون والجرد</button><button data-tab="cap">رأس المال</button><button data-tab="sort">الفرز</button><button data-tab="ct">المصانع والعملاء</button><button data-tab="exp">مصروفات الرحلات</button><button data-tab="rep">التقرير والحسابات</button><button data-tab="set">الأصناف والنسخ الاحتياطي</button></div>
 
 <div class="card pane" data-p="ops">
   <h2 id="fh">تسجيل عملية جديدة</h2>
@@ -204,6 +216,37 @@ th{color:var(--mute);font-weight:500}
   <div class="scroll" style="margin-top:10px"><table style="min-width:600px"><thead><tr><th>التاريخ</th><th>الصنف</th><th>الفرق (طن)</th><th>القيمة</th><th>ملاحظة</th><th></th></tr></thead><tbody id="atb"></tbody></table></div>
 </div>
 
+<div class="card pane" data-p="cap">
+  <h2>رأس المال</h2>
+  <p class="sub" style="margin-bottom:8px">سجّل رأس المال اللي بتشتغل بيه، وزوّده في أي وقت (إضافة) أو اسحب منه. النظام بيحسب عليه المشتريات والمبيعات والمصروفات ويطلّع السيولة المتاحة، وبيظهر ملخصه في أعلى الصفحة.</p>
+  <form class="g" id="kf">
+    <div><label for="kt">النوع</label><select id="kt"><option value="in">إضافة / زيادة رأس المال</option><option value="out">سحب من رأس المال</option></select></div>
+    <div><label for="kd">التاريخ</label><input id="kd" type="date" required></div>
+    <div><label for="ka">المبلغ (ج.م)</label><input id="ka" type="number" step="0.01" min="0.01" required></div>
+    <div><label for="kn">ملاحظة</label><input id="kn" placeholder="رأس مال افتتاحي، زيادة، شريك..."></div>
+    <div class="tot" id="kp"></div>
+    <div class="err" id="ke" role="alert"></div>
+    <button class="btn" type="submit">حفظ</button>
+  </form>
+</div>
+<div class="card pane" data-p="cap">
+  <h2>كشف السيولة على رأس المال</h2>
+  <div class="scroll"><table class="stt" style="min-width:0"><tbody id="kst"></tbody></table></div>
+</div>
+<div class="card pane" data-p="cap">
+  <h2>أين رأس المال دلوقتي؟</h2>
+  <div class="scroll"><table class="stt" style="min-width:0"><tbody id="kwh"></tbody></table></div>
+  <p class="sub">الربح / الخسارة هنا = الصافي بعد المصروفات (ربح المبيعات − مصروفات غير مرتبطة + فروقات الجرد والهالك). المخزون بالتكلفة.</p>
+</div>
+<div class="card pane" data-p="cap">
+  <h2>النسب على رأس المال</h2>
+  <div class="grid" id="knb"></div>
+</div>
+<div class="card pane" data-p="cap">
+  <h2>سجل رأس المال</h2>
+  <div class="scroll"><table style="min-width:520px"><thead><tr><th>التاريخ</th><th>النوع</th><th>المبلغ</th><th>رأس المال بعدها</th><th>ملاحظة</th><th></th></tr></thead><tbody id="ktb"></tbody></table></div>
+</div>
+
 <div class="card pane" data-p="exp">
   <h2>مصروفات الرحلات</h2>
   <p class="sub" style="margin-bottom:8px">اختار الرحلة (عملية شراء أو بيع) وسجّل مصروفاتها — كل رحلة مصروفاتها لوحدها ومش بتتخلط بغيرها، وبتتحسب تلقائي في تكلفة العملية. تقدر تعدّل أو تحذف أي مصروف، وتضيف أو تحذف أنواع المصروفات من الأزرار.</p>
@@ -242,7 +285,7 @@ try{const o=JSON.parse(localStorage.getItem('pasta_waste_tx')||'[]');if(o.length
 const $=i=>document.getElementById(i);
 let _u=0;const uid=()=>{_u=Math.max(Date.now(),_u+1);return _u};
 const today=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)};
-function norm(){['ex','sr','ct','pay','adj','tx'].forEach(k=>S[k]=S[k]||[]);
+function norm(){['ex','sr','ct','pay','adj','tx','cap'].forEach(k=>S[k]=S[k]||[]);
   const seen={};S.seq=Math.max(S.seq||0,...S.tx.map(t=>t.no||0));
   S.tx.forEach(t=>{if(t.no&&t.grp)seen['g'+t.grp]=t.no});
   [...S.tx].sort((a,b)=>a.date.localeCompare(b.date)||a.id-b.id).forEach(t=>{if(t.no)return;const k=t.grp?'g'+t.grp:null;if(k&&seen[k]){t.no=seen[k];return}t.no=++S.seq;if(k)seen[k]=t.no})}
@@ -308,9 +351,9 @@ function render(){
   $('stk').textContent=fmt(q,3)+' طن';
   $('stkv').textContent='قيمة المخزون بالتكلفة: '+M(c);
   $('chips').innerHTML=S.types.map(t=>`<span class="chip">${esc(t.name)}: ${fmt(st[t.id].q,3)} طن${st[t.id].q>0?' · '+fmt(st[t.id].c/st[t.id].q,0)+' ج/طن':''}</span>`).join('');
-  let wh='';if(neg.length)wh+='<div class="warn bad">⚠️ المخزون بالسالب: '+neg.slice(0,3).map(n=>esc(tn(n.tid))+' '+fmt(n.q,3)+' طن بتاريخ '+n.date).join(' • ')+' — فيه عملية بيع/فرز مسجلة بكمية أكبر من المتاح في وقتها. راجع التواريخ أو الكميات (أرباح العمليات دي غير دقيقة لحد ما تتصلح).</div>';
+  const F=fin(C0);let wh='';if(S.cap.length&&F.cash<-0.005)wh+='<div class="warn bad">⚠️ السيولة المتاحة بالسالب ('+M(F.cash)+') — المدفوعات والمصروفات أكبر من رأس المال والتحصيلات. زوّد رأس المال بالفرق أو راجع المدفوعات.</div>';if(neg.length)wh+='<div class="warn bad">⚠️ المخزون بالسالب: '+neg.slice(0,3).map(n=>esc(tn(n.tid))+' '+fmt(n.q,3)+' طن بتاريخ '+n.date).join(' • ')+' — فيه عملية بيع/فرز مسجلة بكمية أكبر من المتاح في وقتها. راجع التواريخ أو الكميات (أرباح العمليات دي غير دقيقة لحد ما تتصلح).</div>';
   try{const b=+localStorage.getItem(KEY+'_bk')||0;if(S.tx.length&&!S.demo&&(Date.now()-b)>7*864e5)wh+='<div class="warn">💾 '+(b?'آخر نسخة احتياطية من '+Math.floor((Date.now()-b)/864e5)+' يوم':'لسه ماعملتش نسخة احتياطية')+' — البيانات محفوظة في المتصفح بس. من تبويب «الأصناف والنسخ الاحتياطي» حمّل نسخة ملف.</div>'}catch(e){}
-  $('warn').innerHTML=wh;
+  $('warn').innerHTML=wh;$('capbox').innerHTML=capHead(F);
   const B=S.tx.filter(t=>t.kind==='buy'),L=S.tx.filter(t=>t.kind==='sell'),su=(a,f)=>a.reduce((s,t)=>s+f(t),0);
   const bv=su(B,t=>t.qty*t.price),sv=su(L,t=>t.qty*t.price),bq=su(B,t=>t.qty),sq=su(L,t=>t.qty);
   const pyb=su(S.pay.filter(x=>x.kind==='buy'),x=>x.amt),pys=su(S.pay.filter(x=>x.kind==='sell'),x=>x.amt),owe=bv-su(B,t=>t.paid)-pyb,due=sv-su(L,t=>t.paid)-pys,exT=su(S.ex,x=>x.amt),exU=su(S.ex.filter(x=>!lk.has(x.id)),x=>x.amt);
@@ -336,7 +379,7 @@ function render(){
   $('tb').innerHTML=rows.length?rows.map(t=>{const v=t.qty*t.price,p=pf[t.id],tc=t.tr+(xe[t.id]||0),rem=Math.round((v-t.paid)*100)/100;
     return`<tr><td>${no[t.id]}</td><td>${t.date}</td><td><span class="tag ${t.kind==='buy'?'b':'s'}">${t.kind==='buy'?'شراء':'بيع'}</span></td><td>${esc(t.party)}</td><td>${esc(t.grade||tn(t.tid))}${t.ch?'<br><small>'+esc(t.ch)+'</small>':''}</td><td>${fmt(t.qty,3)}</td><td>${M(t.price)}</td>${bo?'':`<td>${t.kind==='sell'?M(ca[t.id]||0):'—'}</td>`}<td${(xd[t.id]||[]).length?` title="${esc((xd[t.id]).map(x=>x.cat+': '+fmt(x.amt)).join('\n'))}"`:''}>${M(tc)}${(xd[t.id]||[]).length?' <small class="sub">('+xd[t.id].length+' مصروف)</small>':''}</td><td>${M(v)}</td><td>${t.kind==='buy'?M(v+tc):M(v-tc)+' <small class="sub">صافي</small>'}</td><td>${M(t.paid)}</td><td class="${rem>0?'neg':''}">${rem>0?M(rem):'مسدّد'}</td><td>${PM[pmOf(t)]}</td>${bo?'':`<td class="${p>=0?'pos':'neg'}">${p===undefined?'—':M(p)}</td>`}<td><button class="x" data-inv="${t.id}" title="طباعة فاتورة" aria-label="طباعة فاتورة">🖨</button><button class="x" data-ted="${t.id}" title="تعديل" aria-label="تعديل العملية">✎</button><button class="x" data-del="${t.id}" aria-label="حذف العملية">✕</button></td></tr>`}).join('')
    :'<tr><td colspan="'+(bo?13:15)+'" class="empty">لا توجد عمليات مطابقة.</td></tr>';
-  renderX();renderC();renderA(profit,exT,exU);renderS(C0);demoUI();
+  renderX();renderC();renderA(profit,exT,exU);renderS(C0);renderK(F);demoUI();
 }
 
 document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{kind=b.dataset.t;
@@ -542,7 +585,7 @@ function renderA(profit,exT,exU){
   const su=(a,f)=>a.reduce((s,t)=>s+f(t),0),B=S.tx.filter(t=>t.kind==='buy'),L=S.tx.filter(t=>t.kind==='sell'),PY=k=>S.pay.filter(x=>x.kind===k),
    sv=su(L,t=>t.qty*t.price),bv=su(B,t=>t.qty*t.price),cin=su(L,t=>t.paid)+su(PY('sell'),x=>x.amt),cout=su(B,t=>t.paid)+su(PY('buy'),x=>x.amt),tr=su(S.tx,t=>t.tr),
    K=(a,b,c)=>`<div class="k"><small>${a}</small><b class="${c||''}">${b}</b></div>`,net=profit-exU+ADJ,cash=cin-cout-tr-exT;
-  $('acc').innerHTML=K('إجمالي الإيرادات (المبيعات)',M(sv))+K('المحصّل من العملاء',M(cin),'pos')+K('لنا عند العملاء',M(sv-cin),'pos')+K('إجمالي المشتريات',M(bv))+K('المدفوع للمصانع',M(cout))+K('علينا للمصانع',M(bv-cout),'neg')+K('مصاريف النقل',M(tr))+K('مصروفات الرحلات',M(exT),'neg')+K('ربح المبيعات',M(profit),profit>=0?'pos':'neg')+K('الصافي بعد المصروفات',M(net),net>=0?'pos':'neg')+K('صافي السيولة (محصّل − مدفوع − نقل − مصروفات)',M(cash),cash>=0?'pos':'neg');
+  $('acc').innerHTML=K('إجمالي الإيرادات (المبيعات)',M(sv))+K('المحصّل من العملاء',M(cin),'pos')+K('لنا عند العملاء',M(sv-cin),'pos')+K('إجمالي المشتريات',M(bv))+K('المدفوع للمصانع',M(cout))+K('علينا للمصانع',M(bv-cout),'neg')+K('مصاريف النقل',M(tr))+K('مصروفات الرحلات',M(exT),'neg')+K('ربح المبيعات',M(profit),profit>=0?'pos':'neg')+K('الصافي بعد المصروفات',M(net),net>=0?'pos':'neg')+K('صافي السيولة (محصّل − مدفوع − نقل − مصروفات)',M(cash),cash>=0?'pos':'neg')+(f=>S.cap.length?K('رأس المال',M(f.cap))+K('السيولة المتاحة (مع رأس المال)',M(f.cash),f.cash>=0?'pos':'neg'):'')(fin());
   const m={};Object.keys(PM).filter(k=>k!=='credit').forEach(k=>m[k]={i:0,o:0});
   L.forEach(t=>{if(t.paid>0)(m[pmOf(t)]||m.cash).i+=t.paid});B.forEach(t=>{if(t.paid>0)(m[pmOf(t)]||m.cash).o+=t.paid});
   S.pay.forEach(x=>{const o=m[x.method]||m.cash;if(x.kind==='sell')o.i+=x.amt;else o.o+=x.amt});
@@ -658,6 +701,51 @@ $('af').onsubmit=e=>{e.preventDefault();const tid=+$('at').value,date=$('ad').va
   if(df===0){$('ae').textContent='الرصيد الفعلي مطابق للنظام — مفيش فرق يتسجّل.';return}
   const r=safe(()=>S.adj.push({id:uid(),date,tid,qty:df,sys,actual:act,note:$('an').value.trim()}));
   if(r){$('ae').textContent=r;return}save();$('ae').textContent='';$('ac').value='';$('an').value='';render()};
+
+/* ===== رأس المال ===== */
+function fin(C){C=C||calc();
+  const su=(a,f)=>a.reduce((s,t)=>s+f(t),0),B=S.tx.filter(t=>t.kind==='buy'),L=S.tx.filter(t=>t.kind==='sell'),PY=k=>S.pay.filter(x=>x.kind===k),
+   bv=su(B,t=>t.qty*t.price),sv=su(L,t=>t.qty*t.price),cin=su(L,t=>t.paid)+su(PY('sell'),x=>x.amt),cout=su(B,t=>t.paid)+su(PY('buy'),x=>x.amt),
+   tr=su(S.tx,t=>t.tr),exT=su(S.ex,x=>x.amt),cIn=su(S.cap.filter(x=>x.kind==='in'),x=>x.amt),cOut=su(S.cap.filter(x=>x.kind==='out'),x=>x.amt),
+   cap=cIn-cOut,op=cin-cout-tr-exT,cash=cap+op,sk=Object.values(C.st).reduce((a,s)=>a+s.c,0),ar=sv-cin,ap=bv-cout,eq=cash+sk+ar-ap,
+   exU=su(S.ex.filter(x=>!C.lk.has(x.id)),x=>x.amt),net=C.profit-exU+C.adj;
+  return{bv,sv,cin,cout,tr,exT,cIn,cOut,cap,op,cash,sk,ar,ap,eq,net,gain:eq-cap}}
+const pc=(a,b)=>b>0?fmt(a/b*100,1)+'٪':'—';
+const capSort=L=>[...L].sort((a,b)=>a.date.localeCompare(b.date)||(a.kind==='in'?0:1)-(b.kind==='in'?0:1)||a.id-b.id);
+function capOK(L){let r=0;for(const x of capSort(L)){r+=x.kind==='in'?x.amt:-x.amt;if(r<-0.005)return false}return true}
+const capAt=d=>S.cap.filter(x=>x.date<=d).reduce((a,x)=>a+(x.kind==='in'?x.amt:-x.amt),0);
+function capHead(F){
+  if(!S.cap.length)return'<span class="capt">رأس المال</span><strong class="cv">غير مسجّل</strong><div class="capl" style="opacity:.85"><span style="opacity:1">سجّل رأس المال لتظهر السيولة المتاحة ونسبة المشتريات والمبيعات والمصروفات عليه.</span></div><button class="btn" type="button" data-capgo="1">＋ إضافة رأس المال</button>';
+  const g=F.gain,cl=x=>x>=-0.005?'hp':'hn',pp=x=>F.cap>0?M(x)+' · '+pc(x,F.cap):M(x);
+  return`<span class="capt">رأس المال</span><strong class="cv">${M(F.cap)}</strong>
+  <div class="capl"><span>السيولة المتاحة (الكاش)</span><span class="${cl(F.cash)}">${M(F.cash)}</span></div>
+  <div class="capl"><span>المشتريات</span><span>${pp(F.bv)}</span></div>
+  <div class="capl"><span>المبيعات</span><span>${pp(F.sv)}</span></div>
+  <div class="capl"><span>المصروفات (نقل + رحلات)</span><span>${pp(F.tr+F.exT)}</span></div>
+  <div class="capl"><span>إجمالي رأس المال الحالي</span><span>${M(F.eq)}</span></div>
+  <div class="capl"><span>الربح / الخسارة على رأس المال</span><span class="${cl(g)}">${g>0.005?'+':''}${M(g)}${F.cap>0?' ('+pc(g,F.cap)+')':''}</span></div>
+  <button class="btn" type="button" data-capgo="1">＋ زيادة رأس المال</button>`}
+function renderK(F){
+  const R=(a,v,cl,t)=>`<tr${t?' class="tt"':''}><td>${a}</td><td class="${cl||''}">${M(v)}</td></tr>`,cl=x=>x>=-0.005?'pos':'neg';
+  $('kst').innerHTML=R('رأس المال (المضاف '+M(F.cIn)+' − المسحوب '+M(F.cOut)+')',F.cap)+R('(+) المبيعات المحصّلة (تشمل الدفعات اللاحقة)',F.cin)+R('(−) المشتريات المدفوعة للمصانع (تشمل الدفعات)',-F.cout)+R('(−) مصاريف النقل',-F.tr)+R('(−) مصروفات الرحلات',-F.exT)+R('= السيولة المتاحة (الكاش)',F.cash,cl(F.cash),1);
+  $('kwh').innerHTML=R('السيولة المتاحة',F.cash)+R('(+) قيمة المخزون بالتكلفة',F.sk)+R('(+) لنا عند العملاء',F.ar)+R('(−) علينا للمصانع',-F.ap)+R('= إجمالي رأس المال الحالي',F.eq,'',1)+R('(−) رأس المال المسجّل',-F.cap)+R('= الربح / الخسارة'+(F.cap>0?' ('+pc(F.gain,F.cap)+' من رأس المال)':''),F.gain,cl(F.gain),1);
+  const K=(a,b,c)=>`<div class="k"><small>${a}</small><b>${b}</b><small>${c}</small></div>`,c=F.cap;
+  $('knb').innerHTML=c>0?K('المشتريات ÷ رأس المال',pc(F.bv,c),M(F.bv))+K('المبيعات ÷ رأس المال',pc(F.sv,c),M(F.sv))+K('المصروفات (نقل + رحلات) ÷ رأس المال',pc(F.tr+F.exT,c),M(F.tr+F.exT))+K('السيولة المتبقية ÷ رأس المال',pc(F.cash,c),M(F.cash))+K('العائد على رأس المال',pc(F.gain,c),M(F.gain)):'<div class="empty" style="grid-column:1/-1">سجّل رأس المال أولًا لتظهر النسب.</div>';
+  let run=0;const A=capSort(S.cap).map(x=>{run+=x.kind==='in'?x.amt:-x.amt;return{...x,run}}).reverse();
+  $('ktb').innerHTML=A.length?A.map(x=>`<tr><td>${x.date}</td><td><span class="tag ${x.kind==='in'?'s':'b'}">${x.kind==='in'?'إضافة':'سحب'}</span></td><td class="${x.kind==='in'?'pos':'neg'}">${x.kind==='in'?'+':'−'}${M(x.amt)}</td><td>${M(x.run)}</td><td style="white-space:normal">${esc(x.note||'')}</td><td><button class="x" data-kd="${x.id}" aria-label="حذف">✕</button></td></tr>`).join(''):'<tr><td colspan="6" class="empty">لا توجد حركات رأس مال بعد.</td></tr>';
+  kpv()}
+function kpv(){const a=+$('ka').value,d=$('kd').value;if(!(a>0)||!d){$('kp').textContent='';return}const F=fin(),s=$('kt').value==='in'?1:-1;$('kp').textContent='رأس المال بعد العملية: '+M(F.cap+s*a)+' — السيولة المتاحة بعدها: '+M(F.cash+s*a)}
+['kt','kd','ka'].forEach(i=>$(i).addEventListener('input',kpv));
+$('kd').value=today();
+$('kf').onsubmit=e=>{e.preventDefault();const amt=+$('ka').value,k2=$('kt').value,date=$('kd').value,er=m=>{$('ke').textContent=m};
+  if(!(amt>0)||!date)return er('اكتب المبلغ والتاريخ.');
+  if(!capOK([...S.cap,{id:Infinity,date,amt,kind:k2}]))return er('السحب ده أكبر من رأس المال المتاح في التاريخ ده ('+M(Math.max(capAt(date),0))+').');
+  S.cap.push({id:uid(),date,amt,kind:k2,note:$('kn').value.trim()});save();er('');$('ka').value='';$('kn').value='';render()};
+document.addEventListener('click',e=>{const d=e.target.dataset;if(!d)return;
+  if(d.capgo){show('cap');$('kt').value='in';$('kf').scrollIntoView({behavior:'smooth'});$('ka').focus()}
+  else if(d.kd){const L=S.cap.filter(x=>String(x.id)!==d.kd);
+    if(!capOK(L))alert('مينفعش تحذف الحركة دي، لأن سحوبات بعدها هتبقى أكبر من رأس المال. احذف السحوبات الأول.');
+    else if(confirm('حذف حركة رأس المال دي؟')){S.cap=L;save();render()}}});
 
 lrow();applyKind();
 prev();show('ops');render();
