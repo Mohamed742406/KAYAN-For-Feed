@@ -72,7 +72,7 @@ th{color:var(--mute);font-weight:500}
 @media (max-width:560px){.orow{grid-template-columns:1fr 1fr}}
 .warn{background:rgba(224,165,38,.16);border:1px solid var(--wheat);border-radius:10px;padding:10px 14px;margin:10px 0;font-size:.92rem}
 .warn.bad{background:rgba(180,68,47,.14);border-color:var(--buy)}
-#cats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+#cats,#kcats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
 #inv .k{background:#fff;color:#000;border:1px solid #999}
 #inv{display:none}
 @media print{body>.wrap{display:none}#inv{display:block;color:#000;background:#fff;padding:24px;font-size:14px}
@@ -220,7 +220,8 @@ th{color:var(--mute);font-weight:500}
   <h2>رأس المال</h2>
   <p class="sub" style="margin-bottom:8px">سجّل رأس المال اللي بتشتغل بيه، وزوّده في أي وقت (إضافة) أو اسحب منه. النظام بيحسب عليه المشتريات والمبيعات والمصروفات ويطلّع السيولة المتاحة، وبيظهر ملخصه في أعلى الصفحة.</p>
   <form class="g" id="kf">
-    <div><label for="kt">النوع</label><select id="kt"><option value="in">إضافة / زيادة رأس المال</option><option value="out">سحب من رأس المال</option></select></div>
+    <div><label for="kt">النوع</label><select id="kt"><option value="in">إضافة / زيادة رأس المال</option><option value="out">سحب شخصي (أخويا، البيت...) — خارج المصروفات والأرباح</option></select></div>
+    <div id="kcw" hidden style="grid-column:1/-1"><label for="kc">لمين / الغرض — السحب الشخصي مش بيدخل في مصروفات الرحلات ولا في تكلفة العمليات ولا في الأرباح، بيخصم من رأس المال والسيولة بس</label><div id="kcats"></div><input id="kc" list="kcl" placeholder="اكتب الجهة أو اضغط على زر بالأعلى (أخويا، البيت...)"><datalist id="kcl"></datalist></div>
     <div><label for="kd">التاريخ</label><input id="kd" type="date" required></div>
     <div><label for="ka">المبلغ (ج.م)</label><input id="ka" type="number" step="0.01" min="0.01" required></div>
     <div><label for="kn">ملاحظة</label><input id="kn" placeholder="رأس مال افتتاحي، زيادة، شريك..."></div>
@@ -243,8 +244,12 @@ th{color:var(--mute);font-weight:500}
   <div class="grid" id="knb"></div>
 </div>
 <div class="card pane" data-p="cap">
+  <h2>المسحوبات الشخصية حسب الجهة</h2>
+  <div class="scroll"><table style="min-width:0"><thead><tr><th>الجهة</th><th>عدد السحوبات</th><th>الإجمالي</th><th>من رأس المال المضاف</th></tr></thead><tbody id="kbyc"></tbody></table></div>
+</div>
+<div class="card pane" data-p="cap">
   <h2>سجل رأس المال</h2>
-  <div class="scroll"><table style="min-width:520px"><thead><tr><th>التاريخ</th><th>النوع</th><th>المبلغ</th><th>رأس المال بعدها</th><th>ملاحظة</th><th></th></tr></thead><tbody id="ktb"></tbody></table></div>
+  <div class="scroll"><table style="min-width:520px"><thead><tr><th>التاريخ</th><th>النوع / الجهة</th><th>المبلغ</th><th>رأس المال بعدها</th><th>ملاحظة</th><th></th></tr></thead><tbody id="ktb"></tbody></table></div>
 </div>
 
 <div class="card pane" data-p="exp">
@@ -463,7 +468,7 @@ function rep(m){
   const rows=S.types.map(ty=>{const s=L.filter(t=>t.tid===ty.id),le=(C0.led[ty.id]||[]).filter(x=>mk(x.d)<=m),end=le.length?le[le.length-1].q:0;
     return`<tr><td>${esc(ty.name)}</td><td>${fmt(su(B.filter(t=>t.tid===ty.id),t=>t.qty),3)}</td><td>${fmt(su(s,t=>t.qty),3)}</td><td>${M(su(s,t=>t.qty*t.price))}</td><td>${fmt(end,3)}</td></tr>`}).join('');
   const cr=Object.keys(cats).map(c=>`<tr><td>${esc(c)}</td><td>${M(cats[c])}</td></tr>`).join('')||'<tr><td colspan="2">لا توجد مصروفات في هذا الشهر.</td></tr>';
-  return`<div class="grid" style="margin-top:10px">${k('مشتريات الشهر',fmt(su(B,t=>t.qty),3)+' طن — '+M(su(B,t=>t.qty*t.price)))}${k('مبيعات الشهر',fmt(su(L,t=>t.qty),3)+' طن — '+M(su(L,t=>t.qty*t.price)))}${k('مصاريف النقل',M(su(T,t=>t.tr)))}${k('فاقد الفرز',fmt(su(S.sr.filter(x=>mk(x.date)===m),x=>x.qty-su(x.outs,o=>o.qty)),3)+' طن')}${k('ربح المبيعات',M(pr),pr>=0?'pos':'neg')}${k('مصروفات الرحلات',M(ext),'neg')}${k('الهالك وفروقات الجرد',M(aj),aj>=0?'pos':'neg')}${k('الصافي بعد المصروفات',M(pr-extU+aj),pr-extU+aj>=0?'pos':'neg')}</div>
+  return`<div class="grid" style="margin-top:10px">${k('مشتريات الشهر',fmt(su(B,t=>t.qty),3)+' طن — '+M(su(B,t=>t.qty*t.price)))}${k('مبيعات الشهر',fmt(su(L,t=>t.qty),3)+' طن — '+M(su(L,t=>t.qty*t.price)))}${k('مصاريف النقل',M(su(T,t=>t.tr)))}${k('فاقد الفرز',fmt(su(S.sr.filter(x=>mk(x.date)===m),x=>x.qty-su(x.outs,o=>o.qty)),3)+' طن')}${k('ربح المبيعات',M(pr),pr>=0?'pos':'neg')}${k('مصروفات الرحلات',M(ext),'neg')}${k('الهالك وفروقات الجرد',M(aj),aj>=0?'pos':'neg')}${k('مسحوبات شخصية (خارج الأرباح)',M(su(S.cap.filter(x=>x.kind==='out'&&mk(x.date)===m),x=>x.amt)),'neg')}${k('الصافي بعد المصروفات',M(pr-extU+aj),pr-extU+aj>=0?'pos':'neg')}</div>
   <div class="scroll"><table style="min-width:0"><tr><th>الصنف</th><th>اشتريت (طن)</th><th>بعت (طن)</th><th>قيمة المبيعات</th><th>المخزون آخر الشهر (طن)</th></tr>${rows}</table></div>
   <h2 style="margin-top:12px">المصروفات حسب النوع</h2><table style="min-width:0"><tr><th>النوع</th><th>المبلغ</th></tr>${cr}</table>
   <h2 style="margin-top:12px">المبيعات حسب طريقة البيع</h2><table style="min-width:0"><tr><th>الطريقة</th><th>طن</th><th>القيمة</th></tr>${cs2}</table>`;
@@ -585,7 +590,7 @@ function renderA(profit,exT,exU){
   const su=(a,f)=>a.reduce((s,t)=>s+f(t),0),B=S.tx.filter(t=>t.kind==='buy'),L=S.tx.filter(t=>t.kind==='sell'),PY=k=>S.pay.filter(x=>x.kind===k),
    sv=su(L,t=>t.qty*t.price),bv=su(B,t=>t.qty*t.price),cin=su(L,t=>t.paid)+su(PY('sell'),x=>x.amt),cout=su(B,t=>t.paid)+su(PY('buy'),x=>x.amt),tr=su(S.tx,t=>t.tr),
    K=(a,b,c)=>`<div class="k"><small>${a}</small><b class="${c||''}">${b}</b></div>`,net=profit-exU+ADJ,cash=cin-cout-tr-exT;
-  $('acc').innerHTML=K('إجمالي الإيرادات (المبيعات)',M(sv))+K('المحصّل من العملاء',M(cin),'pos')+K('لنا عند العملاء',M(sv-cin),'pos')+K('إجمالي المشتريات',M(bv))+K('المدفوع للمصانع',M(cout))+K('علينا للمصانع',M(bv-cout),'neg')+K('مصاريف النقل',M(tr))+K('مصروفات الرحلات',M(exT),'neg')+K('ربح المبيعات',M(profit),profit>=0?'pos':'neg')+K('الصافي بعد المصروفات',M(net),net>=0?'pos':'neg')+K('صافي السيولة (محصّل − مدفوع − نقل − مصروفات)',M(cash),cash>=0?'pos':'neg')+(f=>S.cap.length?K('رأس المال',M(f.cap))+K('السيولة المتاحة (مع رأس المال)',M(f.cash),f.cash>=0?'pos':'neg'):'')(fin());
+  $('acc').innerHTML=K('إجمالي الإيرادات (المبيعات)',M(sv))+K('المحصّل من العملاء',M(cin),'pos')+K('لنا عند العملاء',M(sv-cin),'pos')+K('إجمالي المشتريات',M(bv))+K('المدفوع للمصانع',M(cout))+K('علينا للمصانع',M(bv-cout),'neg')+K('مصاريف النقل',M(tr))+K('مصروفات الرحلات',M(exT),'neg')+K('ربح المبيعات',M(profit),profit>=0?'pos':'neg')+K('الصافي بعد المصروفات',M(net),net>=0?'pos':'neg')+K('صافي السيولة (محصّل − مدفوع − نقل − مصروفات)',M(cash),cash>=0?'pos':'neg')+(f=>S.cap.length?K('رأس المال',M(f.cap))+(f.cOut>0?K('مسحوبات شخصية (خارج الأرباح)',M(f.cOut),'neg'):'')+K('السيولة المتاحة (مع رأس المال)',M(f.cash),f.cash>=0?'pos':'neg'):'')(fin());
   const m={};Object.keys(PM).filter(k=>k!=='credit').forEach(k=>m[k]={i:0,o:0});
   L.forEach(t=>{if(t.paid>0)(m[pmOf(t)]||m.cash).i+=t.paid});B.forEach(t=>{if(t.paid>0)(m[pmOf(t)]||m.cash).o+=t.paid});
   S.pay.forEach(x=>{const o=m[x.method]||m.cash;if(x.kind==='sell')o.i+=x.amt;else o.o+=x.amt});
@@ -722,27 +727,41 @@ function capHead(F){
   <div class="capl"><span>المشتريات</span><span>${pp(F.bv)}</span></div>
   <div class="capl"><span>المبيعات</span><span>${pp(F.sv)}</span></div>
   <div class="capl"><span>المصروفات (نقل + رحلات)</span><span>${pp(F.tr+F.exT)}</span></div>
+  ${F.cOut>0?`<div class="capl"><span>مسحوبات شخصية (خارج الأرباح)</span><span>${M(F.cOut)}</span></div>`:''}
   <div class="capl"><span>إجمالي رأس المال الحالي</span><span>${M(F.eq)}</span></div>
   <div class="capl"><span>الربح / الخسارة على رأس المال</span><span class="${cl(g)}">${g>0.005?'+':''}${M(g)}${F.cap>0?' ('+pc(g,F.cap)+')':''}</span></div>
   <button class="btn" type="button" data-capgo="1">＋ زيادة رأس المال</button>`}
 function renderK(F){
   const R=(a,v,cl,t)=>`<tr${t?' class="tt"':''}><td>${a}</td><td class="${cl||''}">${M(v)}</td></tr>`,cl=x=>x>=-0.005?'pos':'neg';
-  $('kst').innerHTML=R('رأس المال (المضاف '+M(F.cIn)+' − المسحوب '+M(F.cOut)+')',F.cap)+R('(+) المبيعات المحصّلة (تشمل الدفعات اللاحقة)',F.cin)+R('(−) المشتريات المدفوعة للمصانع (تشمل الدفعات)',-F.cout)+R('(−) مصاريف النقل',-F.tr)+R('(−) مصروفات الرحلات',-F.exT)+R('= السيولة المتاحة (الكاش)',F.cash,cl(F.cash),1);
+  $('kst').innerHTML=R('رأس المال (المضاف '+M(F.cIn)+' − مسحوبات شخصية '+M(F.cOut)+')',F.cap)+R('(+) المبيعات المحصّلة (تشمل الدفعات اللاحقة)',F.cin)+R('(−) المشتريات المدفوعة للمصانع (تشمل الدفعات)',-F.cout)+R('(−) مصاريف النقل',-F.tr)+R('(−) مصروفات الرحلات',-F.exT)+R('= السيولة المتاحة (الكاش)',F.cash,cl(F.cash),1);
   $('kwh').innerHTML=R('السيولة المتاحة',F.cash)+R('(+) قيمة المخزون بالتكلفة',F.sk)+R('(+) لنا عند العملاء',F.ar)+R('(−) علينا للمصانع',-F.ap)+R('= إجمالي رأس المال الحالي',F.eq,'',1)+R('(−) رأس المال المسجّل',-F.cap)+R('= الربح / الخسارة'+(F.cap>0?' ('+pc(F.gain,F.cap)+' من رأس المال)':''),F.gain,cl(F.gain),1);
   const K=(a,b,c)=>`<div class="k"><small>${a}</small><b>${b}</b><small>${c}</small></div>`,c=F.cap;
   $('knb').innerHTML=c>0?K('المشتريات ÷ رأس المال',pc(F.bv,c),M(F.bv))+K('المبيعات ÷ رأس المال',pc(F.sv,c),M(F.sv))+K('المصروفات (نقل + رحلات) ÷ رأس المال',pc(F.tr+F.exT,c),M(F.tr+F.exT))+K('السيولة المتبقية ÷ رأس المال',pc(F.cash,c),M(F.cash))+K('العائد على رأس المال',pc(F.gain,c),M(F.gain)):'<div class="empty" style="grid-column:1/-1">سجّل رأس المال أولًا لتظهر النسب.</div>';
   let run=0;const A=capSort(S.cap).map(x=>{run+=x.kind==='in'?x.amt:-x.amt;return{...x,run}}).reverse();
-  $('ktb').innerHTML=A.length?A.map(x=>`<tr><td>${x.date}</td><td><span class="tag ${x.kind==='in'?'s':'b'}">${x.kind==='in'?'إضافة':'سحب'}</span></td><td class="${x.kind==='in'?'pos':'neg'}">${x.kind==='in'?'+':'−'}${M(x.amt)}</td><td>${M(x.run)}</td><td style="white-space:normal">${esc(x.note||'')}</td><td><button class="x" data-kd="${x.id}" aria-label="حذف">✕</button></td></tr>`).join(''):'<tr><td colspan="6" class="empty">لا توجد حركات رأس مال بعد.</td></tr>';
-  kpv()}
+  $('ktb').innerHTML=A.length?A.map(x=>`<tr><td>${x.date}</td><td><span class="tag ${x.kind==='in'?'s':'b'}">${x.kind==='in'?'إضافة':'سحب'}</span>${x.cat?' '+esc(x.cat):''}</td><td class="${x.kind==='in'?'pos':'neg'}">${x.kind==='in'?'+':'−'}${M(x.amt)}</td><td>${M(x.run)}</td><td style="white-space:normal">${esc(x.note||'')}</td><td><button class="x" data-kd="${x.id}" aria-label="حذف">✕</button></td></tr>`).join(''):'<tr><td colspan="6" class="empty">لا توجد حركات رأس مال بعد.</td></tr>';
+  const KC=kcats();$('kcats').innerHTML=KC.map((c,i)=>`<span style="display:inline-flex"><button type="button" class="btn ghost" data-kcat="${esc(c)}">${esc(c)}</button><button type="button" class="x" data-kcd="${i}" title="حذف من الأزرار" aria-label="حذف">✕</button></span>`).join('');
+  $('kcl').innerHTML=[...new Set(KC.concat(S.cap.map(x=>x.cat).filter(Boolean)))].map(c=>`<option value="${esc(c)}">`).join('');
+  const by={};S.cap.filter(x=>x.kind==='out').forEach(x=>{const c=x.cat||'بدون جهة',o=by[c]||(by[c]={n:0,v:0});o.n++;o.v+=x.amt});
+  $('kbyc').innerHTML=Object.keys(by).length?Object.entries(by).sort((a,b)=>b[1].v-a[1].v).map(([c,o])=>`<tr><td>${esc(c)}</td><td>${o.n}</td><td class="neg">${M(o.v)}</td><td>${pc(o.v,F.cIn)}</td></tr>`).join('')+`<tr><th>الإجمالي</th><th>${S.cap.filter(x=>x.kind==='out').length}</th><th>${M(F.cOut)}</th><th>${pc(F.cOut,F.cIn)}</th></tr>`:'<tr><td colspan="4" class="empty">لا توجد مسحوبات شخصية.</td></tr>';
+  kvis();kpv()}
+const KCD=['أخويا','البيت','شخصي','أخرى'],kcats=()=>S.kcats||(S.kcats=KCD.slice());
+function kvis(){$('kcw').hidden=$('kt').value!=='out'}
+$('kt').addEventListener('input',kvis);
 function kpv(){const a=+$('ka').value,d=$('kd').value;if(!(a>0)||!d){$('kp').textContent='';return}const F=fin(),s=$('kt').value==='in'?1:-1;$('kp').textContent='رأس المال بعد العملية: '+M(F.cap+s*a)+' — السيولة المتاحة بعدها: '+M(F.cash+s*a)}
 ['kt','kd','ka'].forEach(i=>$(i).addEventListener('input',kpv));
 $('kd').value=today();
 $('kf').onsubmit=e=>{e.preventDefault();const amt=+$('ka').value,k2=$('kt').value,date=$('kd').value,er=m=>{$('ke').textContent=m};
   if(!(amt>0)||!date)return er('اكتب المبلغ والتاريخ.');
   if(!capOK([...S.cap,{id:Infinity,date,amt,kind:k2}]))return er('السحب ده أكبر من رأس المال المتاح في التاريخ ده ('+M(Math.max(capAt(date),0))+').');
-  S.cap.push({id:uid(),date,amt,kind:k2,note:$('kn').value.trim()});save();er('');$('ka').value='';$('kn').value='';render()};
+  const cat=k2==='out'?$('kc').value.trim():'';
+  if(k2==='out'&&!cat)return er('اكتب لمين السحب أو الغرض منه (مثلًا أخويا أو البيت).');
+  if(k2==='out'&&amt>fin().cash+0.005&&!confirm('المبلغ أكبر من السيولة المتاحة حاليًا ('+M(fin().cash)+') — السيولة هتبقى بالسالب. متابعة؟'))return;
+  if(cat){const L=kcats();if(!L.includes(cat))L.push(cat)}
+  const o={id:uid(),date,amt,kind:k2,note:$('kn').value.trim()};if(cat)o.cat=cat;S.cap.push(o);save();er('');$('ka').value='';$('kn').value='';$('kc').value='';render()};
 document.addEventListener('click',e=>{const d=e.target.dataset;if(!d)return;
-  if(d.capgo){show('cap');$('kt').value='in';$('kf').scrollIntoView({behavior:'smooth'});$('ka').focus()}
+  if(d.kcat){$('kc').value=d.kcat;$('ka').focus()}
+  else if(d.kcd!==undefined){const L=kcats(),c=L[+d.kcd];if(c&&confirm('حذف "'+c+'" من الأزرار؟ السحوبات المسجلة بيها مش هتتأثر.')){L.splice(+d.kcd,1);save();render()}}
+  else if(d.capgo){show('cap');$('kt').value='in';$('kf').scrollIntoView({behavior:'smooth'});$('ka').focus()}
   else if(d.kd){const L=S.cap.filter(x=>String(x.id)!==d.kd);
     if(!capOK(L))alert('مينفعش تحذف الحركة دي، لأن سحوبات بعدها هتبقى أكبر من رأس المال. احذف السحوبات الأول.');
     else if(confirm('حذف حركة رأس المال دي؟')){S.cap=L;save();render()}}});
