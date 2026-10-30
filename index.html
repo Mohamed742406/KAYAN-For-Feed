@@ -112,6 +112,11 @@ th{color:var(--mute);font-weight:500}
 
 <div class="card pane" data-p="ops">
   <h2 id="fh">تسجيل عملية جديدة</h2>
+  <details class="xg" open><summary style="cursor:pointer;font-weight:700">إزاي التسجيل بيشتغل؟</summary>
+  <p class="sub"><b>الشراء:</b> سجّل الكمية والسعر اللي اشتريت بيه من المصنع. المصروفات اللي دفعتها عشان الشحنة (تحميل، نقل، رحلات) اكتبها في خانة المصروفات، وهتدخل تكلفة الطن في المخزون.</p>
+  <p class="sub"><b>البيع:</b> سجّل كل نوع طلع من الشحنة بكميته وسعره. مصروفات البيع (نقل للعميل مثلًا) بتتخصم من ربح العملية دي بس.</p>
+  <p class="sub"><b>المدفوع:</b> لو سايبه فاضي يبقى اتدفع كله. لو دفع جزء اكتب المبلغ، والباقي بيفضل "متبقي" لحد ما يتسدّد.</p>
+  <p class="sub"><b>الخصم:</b> بيتخصم من إجمالي العملية قبل ما يتحسب الصافي.</p></details>
   <form class="g" id="f">
     <div><label>نوع العملية</label><div class="seg"><button type="button" class="b on" data-t="buy">شراء</button><button type="button" class="s" data-t="sell">بيع</button></div></div>
     <div><label for="d">التاريخ</label><input id="d" type="date" required></div>
@@ -375,17 +380,22 @@ function render(){
   const k=$('fk').value,ft=+$('ft').value,s=$('fs').value.trim(),m=$('fm').value;
   const rows=LR=sorted().reverse().filter(t=>(!k||t.kind===k)&&(!ft||t.tid===ft)&&(!m||t.date.startsWith(m))&&(!s||(t.party+' '+(t.note||'')+' '+(t.trn||'')).includes(s)));
   const bo=k==='buy';
-  $('th').innerHTML='<tr><th>رقم</th><th>التاريخ</th><th>النوع</th><th>الاسم</th><th>الصنف</th><th>الكمية</th><th>سعر الطن</th>'+(bo?'':'<th>سعر الشراء للطن</th>')+'<th>نقل ومصروفات</th><th>الإجمالي</th><th>الإجمالي بالنقل والمصروفات</th><th>المدفوع</th><th>المتبقي</th><th>طريقة الدفع</th>'+(bo?'':'<th>الربح</th>')+'<th></th></tr>';
-  $('tb').innerHTML=rows.length?rows.map(t=>{const v=V(t),p=pf[t.id],tc=t.tr+(xe[t.id]||0),rem=Math.round((v-t.paid)*100)/100;
-    return`<tr><td>${no[t.id]}</td><td>${t.date}</td><td><span class="tag ${t.kind==='buy'?'b':'s'}">${t.kind==='buy'?'شراء':'بيع'}</span></td><td>${esc(t.party)}</td><td>${esc(t.grade||tn(t.tid))}${t.ch?'<br><small>'+esc(t.ch)+'</small>':''}</td><td>${fmt(t.qty,3)}</td><td>${M(t.price)}</td>${bo?'':`<td>${t.kind==='sell'?M(ca[t.id]||0):'—'}</td>`}<td${(xd[t.id]||[]).length?` title="${esc((xd[t.id]).map(x=>x.cat+': '+fmt(x.amt)).join('\n'))}"`:''}>${M(tc)}${(xd[t.id]||[]).length?' <small class="sub">('+xd[t.id].length+' مصروف)</small>':''}${t.trn?'<br><small class="sub" style="white-space:normal">'+esc(t.trn)+'</small>':''}</td><td>${M(v)}${t.disc>0?' <small class="sub">(بعد خصم '+fmt(t.disc)+')</small>':''}</td><td>${t.kind==='buy'?M(v+tc):M(v-tc)+' <small class="sub">صافي</small>'}</td><td>${M(t.paid)}</td><td class="${rem>0?'neg':''}">${rem>0?M(rem):'مسدّد'}</td><td>${PM[pmOf(t)]}</td>${bo?'':`<td class="${p>=0?'pos':'neg'}">${p===undefined?'—':M(p)}</td>`}<td><button class="x" data-inv="${t.id}" title="طباعة فاتورة" aria-label="طباعة فاتورة">🖨</button><button class="x" data-ted="${t.id}" title="تعديل" aria-label="تعديل العملية">✎</button><button class="x" data-del="${t.id}" aria-label="حذف العملية">✕</button></td></tr>`}).join('')
-   :'<tr><td colspan="'+(bo?13:15)+'" class="empty">لا توجد عمليات مطابقة.</td></tr>';
-  renderRest();renderC();renderA(profit,exT,exU);renderS(C0);renderK(F);demoUI();dbRender(C0);
+  const H=[['رقم',''],['التاريخ',''],['النوع',''],['المصنع / العميل',''],['الصنف',''],['الكمية (طن)',''],['سعر الطن',''],['القيمة','الكمية × السعر − الخصم'],['المصروفات','نقل ورحلات مربوطة بالعملية'],['تكلفة الطن',bo?'(القيمة + المصروفات) ÷ الكمية — داخلة المخزون':'تكلفة الطن من المخزون وقت البيع'],['الصافي',bo?'القيمة + المصروفات (تكلفة الشحنة)':'القيمة − المصروفات']];
+  if(!bo)H.push(['الربح','الصافي − تكلفة الطن × الكمية']);
+  H.push(['المدفوع',''],['المتبقي',''],['طريقة الدفع',''],['','']);
+  $('th').innerHTML='<tr>'+H.map(([a,b])=>`<th${b?` title="${esc(b)}"`:''}>${a}</th>`).join('')+'</tr>';
+  $('tb').innerHTML=rows.length?rows.map(t=>{const v=V(t),p=pf[t.id],tc=t.tr+(xe[t.id]||0),rem=Math.round((v-t.paid)*100)/100,buy=t.kind==='buy',unit=buy?(t.qty?(v+tc)/t.qty:0):(ca[t.id]||0),
+    dtl=(xd[t.id]||[]).map(x=>x.cat+': '+fmt(x.amt)).concat(t.tr?['نقل: '+fmt(t.tr)]:[]).join(' | ');
+    return`<tr><td>${no[t.id]}</td><td>${t.date}</td><td><span class="tag ${buy?'b':'s'}">${buy?'شراء':'بيع'}</span></td><td>${esc(t.party)}</td><td>${esc(t.grade||tn(t.tid))}${t.ch?'<br><small class="sub">'+esc(t.ch)+'</small>':''}</td><td>${fmt(t.qty,3)}</td><td>${M(t.price)}</td><td>${M(v)}${t.disc>0?'<br><small class="sub">بعد خصم '+fmt(t.disc)+'</small>':''}</td><td title="${esc(dtl)}">${tc?M(tc):'—'}${(xd[t.id]||[]).length?' <small class="sub">('+xd[t.id].length+')</small>':''}${t.trn?'<br><small class="sub" style="white-space:normal">'+esc(t.trn)+'</small>':''}</td><td>${M(unit)}</td><td><b>${buy?M(v+tc):M(v-tc)}</b><br><small class="sub">${buy?'تكلفة داخلة المخزون':'صافي بعد المصروفات'}</small></td>${buy?'':`<td class="${p>=0?'pos':'neg'}">${p===undefined?'—':M(p)}</td>`}<td>${M(t.paid)}</td><td class="${rem>0?'neg':''}">${rem>0?M(rem):'مسدّد'}</td><td>${PM[pmOf(t)]}</td><td style="white-space:nowrap"><button class="x" data-inv="${t.id}" title="طباعة فاتورة" aria-label="طباعة فاتورة">🖨</button><button class="x" data-ted="${t.id}" title="تعديل" aria-label="تعديل العملية">✎</button><button class="x" data-del="${t.id}" aria-label="حذف العملية">✕</button></td></tr>`}).join('')
+   :`<tr><td colspan="${H.length}" class="empty">لا توجد عمليات مطابقة.</td></tr>`;
+    renderRest();renderC();renderA(profit,exT,exU);renderS(C0);renderK(F);demoUI();dbRender(C0);
 }
 
 document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{kind=b.dataset.t;
   document.querySelectorAll('.seg button').forEach(x=>x.classList.toggle('on',x===b));
   $('plbl').textContent=kind==='buy'?'اسم المصنع':'اسم العميل';$('err').textContent=''});
-const upd=()=>{if(kind==='sell')return lupd();const g=(+$('q').value||0)*(+$('pr').value||0),dc=+$('dc').value||0,v=g-dc,tr=+$('tr').value||0;$('tot').textContent='الإجمالي: '+M(g)+(dc?' — خصم: '+M(dc)+' — بعد الخصم: '+M(v):'')+' — النقل والمصروفات: '+M(tr)+' — الإجمالي بالنقل والمصروفات: '+M(v+tr)};
+const upd=()=>{if(kind==='sell')return lupd();const q=+$('q').value||0,pr=+$('pr').value||0,g=q*pr,dc=+$('dc').value||0,v=g-dc,tr=+$('tr').value||0,tot=v+tr,ct=q>0?tot/q:0;
+  $('tot').innerHTML=(q&&pr?`<b>هيتسجل شراء:</b> ${fmt(q,3)} طن × ${M(pr)} = ${M(g)}`+(dc?` − خصم ${M(dc)} = ${M(v)}`:'')+(tr?`<br>+ مصروفات الشراء ${M(tr)} ← بتزوّد تكلفة المخزون`:'')+`<br><b>تكلفة الطن داخل المخزون: ${M(ct)}</b> — إجمالي الشحنة ${M(tot)}`:'اكتب الكمية والسعر عشان يظهر الحساب')};
 ['q','pr','tr','p','d','dc'].forEach(i=>$(i).oninput=upd);upd();
 
 $('f').onsubmit=e=>{e.preventDefault();if(kind==='sell')return sellSubmit();
@@ -490,7 +500,8 @@ function lrow(){const d=document.createElement('div');d.className='lrow';
   $('lr').appendChild(d)}
 function lrows(){return[...document.querySelectorAll('#lr .lrow')].map(r=>({grade:r.querySelector('.lg').value.trim(),ch:r.querySelector('.lc').value.trim(),qty:+r.querySelector('.lq').value||0,price:+r.querySelector('.lp').value||0})).filter(l=>l.qty>0)}
 function lupd(){const L=lrows(),q=L.reduce((a,l)=>a+l.qty,0),g=L.reduce((a,l)=>a+l.qty*l.price,0),dc=+$('dc').value||0,v=g-dc,tr=+$('tr').value||0,av=(calc().st[+$('ty').value]||{q:0}).q;
-  $('tot').textContent='إجمالي المباع: '+fmt(q,3)+' طن من المتاح '+fmt(av,3)+' طن — القيمة: '+M(g)+(dc?' — خصم: '+M(dc)+' — بعد الخصم: '+M(v):'')+(tr?' — النقل والمصروفات: '+M(tr)+' — الصافي بعد النقل والمصروفات: '+M(v-tr):'')}
+  if(!q){$('tot').innerHTML='اكتب نوع الكمية وسعرها عشان يظهر الحساب';return}
+  $('tot').innerHTML=`<b>هيتسجل بيع:</b> ${fmt(q,3)} طن من المتاح ${fmt(av,3)} طن`+(q>av+1e-9?' <span class="neg">— الكمية أكبر من المتاح!</span>':'')+` — القيمة ${M(g)}`+(dc?` − خصم ${M(dc)} = ${M(v)}`:'')+(tr?`<br>− مصروفات البيع ${M(tr)} ← بتتخصم من ربح البيع`:'')+`<br><b>صافي العملية: ${M(v-tr)}</b> — الربح الفعلي بيتحسب بتكلفة الطن من المخزون`}
 function applyKind(){const s=kind==='sell';$('gq').hidden=$('gp').hidden=s;$('q').required=$('pr').required=!s;$('lines').hidden=!s;
   $('tylbl').textContent=s?'السحب من مخزون':'صنف المكرونة';fillP();pinfo();upd()}
 function sellSubmit(){
