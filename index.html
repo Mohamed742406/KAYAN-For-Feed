@@ -106,7 +106,7 @@ th{color:var(--mute);font-weight:500}
 <div id="demo"></div>
 <div id="warn"></div>
 <div class="grid" id="kpis"></div>
-<div class="tabs" id="tabs"><button data-tab="dash">لوحة التحكم</button><button data-tab="ops">العمليات</button><button data-tab="stock">المخزون والجرد</button><button data-tab="cap">رأس المال</button><button data-tab="sort">الفرز</button><button data-tab="ct">المصانع والعملاء</button><button data-tab="rep">التقرير والحسابات</button><button data-tab="set">الأصناف والنسخ الاحتياطي</button></div>
+<div class="tabs" id="tabs"><button data-tab="ops">العمليات</button><button data-tab="dash">لوحة التحكم</button><button data-tab="stock">المخزون والجرد</button><button data-tab="cap">رأس المال</button><button data-tab="sort">الفرز</button><button data-tab="ct">المصانع والعملاء</button><button data-tab="rep">التقرير والحسابات</button><button data-tab="set">الأصناف والنسخ الاحتياطي</button></div>
 
 <div class="pane" data-p="dash" id="dash"></div>
 
@@ -124,12 +124,12 @@ th{color:var(--mute);font-weight:500}
     <div><label for="ty" id="tylbl">صنف المكرونة</label><select id="ty" required></select></div>
     <div id="gq"><label for="q">الكمية (طن)</label><input id="q" type="number" step="0.001" min="0.001" required></div>
     <div id="gp"><label for="pr">سعر الطن (ج.م)</label><input id="pr" type="number" step="0.01" min="0" required></div>
+    <div id="lines" hidden style="grid-column:1/-1"><label>تفاصيل البيع: سجّل كل نوع طلع من الشحنة بكميته وسعره وطريقة بيعه</label><div id="lr"></div><button type="button" class="btn ghost" id="la">+ نوع آخر</button><datalist id="gl"></datalist><datalist id="cl"></datalist></div>
     <div style="grid-column:1/-1;display:grid;grid-template-columns:minmax(140px,1fr) minmax(200px,2fr);gap:10px;align-items:start"><div><label for="tr">المصروفات (ج.م) — اكتب الإجمالي كله</label><input id="tr" type="number" step="0.01" min="0" value="0"></div><div><label for="trn">ملاحظات المصروفات — كانت إيه؟</label><textarea id="trn" rows="2" style="resize:vertical" placeholder="مثلًا: تحميل 200 + إكرامية 100 + مواصلات 300"></textarea></div></div>
     <div><label for="dc">الخصم (ج.م) — بيتخصم من إجمالي العملية</label><input id="dc" type="number" step="0.01" min="0" value="0"></div>
     <div><label for="pd">المدفوع (ج.م)</label><input id="pd" type="number" step="0.01" min="0" placeholder="فاضي = كامل"></div>
     <div><label for="pm">طريقة الدفع</label><select id="pm"><option value="cash">نقدي</option><option value="insta">انستاباي</option><option value="vf">فودافون كاش</option><option value="bank">حساب بنكي</option><option value="credit">آجل (لم يُدفع)</option></select></div>
     <div><label for="n">ملاحظة</label><input id="n"></div>
-    <div id="lines" hidden style="grid-column:1/-1"><label>تفاصيل البيع: سجّل كل نوع طلع من الشحنة بكميته وسعره وطريقة بيعه</label><div id="lr"></div><button type="button" class="btn ghost" id="la">+ نوع آخر</button><datalist id="gl"></datalist><datalist id="cl"></datalist></div>
     <div class="tot" id="tot"></div>
     <div class="err" id="err" role="alert"></div>
     <div style="display:flex;gap:6px"><button class="btn" type="submit" id="fs2">حفظ العملية</button><button class="btn ghost" type="button" id="ecn" hidden>إلغاء التعديل</button></div>
