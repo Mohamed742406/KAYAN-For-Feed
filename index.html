@@ -84,7 +84,7 @@ th{color:var(--mute);font-weight:500}
 #inv th,#inv td{border:1px solid #777;color:#000;padding:6px 8px;text-align:right}
 #inv th{background:#e9e9e9!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 #inv .ih{display:flex;align-items:center;gap:14px;border-bottom:3px double #222;padding-bottom:10px;margin-bottom:14px}
-#inv .ilogo{width:56px;height:56px;border-radius:12px;background:#111!important;color:#fff;display:flex;align-items:center;justify-content:center;font:800 28px/1 sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+#inv .ilogo{height:64px;width:auto;max-width:210px;object-fit:contain}
 #inv .ibrand{flex:1}#inv .ibrand b{display:block;font-size:20px}#inv .ibrand small{color:#444}
 #inv .imeta{font-size:12px;color:#333;text-align:left;direction:ltr}
 #inv .ititle{text-align:center;font-size:18px;margin:6px 0 12px}
@@ -476,7 +476,7 @@ function tafqeet(n){n=Math.round((+n||0)*100)/100;const P=Math.floor(n),F=Math.r
   let out=P>0?un(P,'جنيه مصري واحد','جنيهان مصريان','جنيهات مصرية','جنيهاً مصرياً'):(F>0?'':'صفر جنيه مصري');
   if(F>0)out+=(P>0?' و':'')+un(F,'قرش واحد','قرشان','قروش','قرشاً');
   return 'فقط '+out+' لا غير'}
-function invHead(title){const dt=new Date().toLocaleString('en-GB',{hour12:false});return`<div class="ih"><div class="ilogo">K</div><div class="ibrand"><b>KAYAN For Feed</b><small>شراء وبيع مكرونة هالك — الكميات بالطن</small></div><div class="imeta">تاريخ ووقت الطباعة<br>${dt}</div></div><h2 class="ititle">${title}</h2>`}
+function invHead(title){const dt=new Date().toLocaleString('en-GB',{hour12:false});return`<div class="ih"><img class="ilogo" src="images/kayan-logo.png" alt="KAYAN For Feed"><div class="ibrand"><small>شراء وبيع مكرونة هالك — الكميات بالطن</small></div><div class="imeta">تاريخ ووقت الطباعة<br>${dt}</div></div><h2 class="ititle">${title}</h2>`}
 function pidx(){const C=calc();if(C.pi)return C.pi;const tx=new Map(),pay=new Map();
   S.tx.forEach(t=>{let a=tx.get(t.party);if(!a)tx.set(t.party,a=[]);a.push(t)});S.pay.forEach(x=>{let a=pay.get(x.party);if(!a)pay.set(x.party,a=[]);a.push(x)});return C.pi={tx,pay}}
 function calc0(){
@@ -1282,6 +1282,24 @@ AN();PTR();
   const h=$('pdh'),lb=document.querySelector('label[for="pd"]');h.hidden=true;
   lb.insertAdjacentHTML('beforeend',' <button type="button" class="tip" aria-label="شرح الدفع الجزئي">ⓘ</button>');
   lb.querySelector('.tip').onclick=e=>{e.preventDefault();h.hidden=!h.hidden};
+})();
+
+/* ---- v14: أقسام قابلة للطي في الإعدادات والحسابات ---- */
+(function(){
+  const IC={'حفظ واستعادة':'💾','الحماية':'🛡️','أصناف':'🏷️','الحسابات الشاملة':'🧮','حسابات المصانع':'🏭','المصروفات العامة':'🧾','تحويل بين':'🔁','التقرير الشهري':'📅'},
+   Q=p=>[...document.querySelectorAll('details.fold[data-p="'+p+'"]')];
+  const conv=p=>document.querySelectorAll('div.card.pane[data-p="'+p+'"]').forEach(c=>{const h=c.firstElementChild;if(!h||h.tagName!=='H2')return;
+    const d=document.createElement('details'),sm=document.createElement('summary');d.className=c.className+' fold';d.dataset.p=p;sm.textContent=h.textContent;h.remove();
+    d.append(sm);while(c.firstChild)d.append(c.firstChild);c.replaceWith(d)});
+  const ord=(p,keys)=>{const L=Q(p),get=k=>L.find(d=>d.firstElementChild.textContent.includes(k));let a=get(keys[0]);keys.slice(1).forEach(k=>{const n=get(k);if(a&&n){a.after(n);a=n}})};
+  const dec=(p,open)=>Q(p).forEach(d=>{const sm=d.firstElementChild,t=sm.textContent,k=Object.keys(IC).find(k=>t.includes(k));
+    if(k&&!/\p{Extended_Pictographic}/u.test(t))sm.textContent=IC[k]+' '+t;d.open=open.some(o=>t.includes(o))});
+  const bar=p=>{const b=document.createElement('div');b.className='bar pane';b.dataset.p=p;
+    b.innerHTML='<button type="button" class="btn ghost" data-fa="1">فتح كل الأقسام</button><button type="button" class="btn ghost" data-fa="0">طي كل الأقسام</button>';
+    b.onclick=e=>{const v=e.target.dataset.fa;if(v!=null)Q(p).forEach(d=>d.open=v==='1')};Q(p)[0].before(b)};
+  [['set',['حفظ واستعادة','المزامنة','الحماية','تصدير Excel','أصناف'],['حفظ واستعادة']],
+   ['rep',['الحسابات الشاملة','حسابات المصانع','المصروفات العامة','تحويل بين','التقرير الشهري'],['الحسابات الشاملة','حسابات المصانع']]
+  ].forEach(([p,keys,open])=>{conv(p);ord(p,keys);dec(p,open);bar(p)});
 })();
 </script>
 <script>
