@@ -1124,22 +1124,8 @@ async function xlsx(){
   const b=$('xlx'),m=$('xlm');b.disabled=true;b.textContent='جاري التجهيز…';m.textContent='';
   try{
     await loadEJ();
-    const C=calc(),F=fin(C),wb=new ExcelJS.Workbook(),D=d=>d?new Date(d+'T00:00:00Z'):null,xp=t=>t.tr+(C.xe[t.id]||0);let ti=0;
+    const C=calc(),F=fin(C),wb=new ExcelJS.Workbook(),D=d=>d?new Date(d+'T00:00:00Z'):null,xp=t=>t.tr+(C.xe[t.id]||0);const tab=mkTab(wb);
     wb.creator='KAYAN For Feed';wb.created=new Date();wb.calcProperties={fullCalcOnLoad:true};
-    const tab=(name,title,cols,rows)=>{
-      const n=cols.length,ws=wb.addWorksheet(name,{views:[{rightToLeft:true,state:'frozen',ySplit:4,showGridLines:false}],properties:{tabColor:{argb:'FFE0A526'}},pageSetup:{orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0}});
-      ws.mergeCells(1,1,1,n);ws.mergeCells(2,1,2,n);
-      ws.getCell(1,1).value='KAYAN For Feed — '+title;ws.getCell(1,1).font={bold:true,size:16,color:{argb:'FF1D2B3A'}};
-      ws.getCell(2,1).value='تاريخ التصدير: '+today()+' — عدد السجلات: '+rows.length;ws.getCell(2,1).font={color:{argb:'FF66768A'}};
-      const tot=cols.some(c=>c[3]),R=rows.length?rows:[cols.map(()=>null)];
-      ws.addTable({name:'T'+(++ti),ref:'A4',headerRow:true,totalsRow:tot,style:{theme:'TableStyleMedium2',showRowStripes:true},
-        columns:cols.map((c,i)=>({name:c[0],filterButton:true,totalsRowLabel:i===0&&tot?'الإجمالي':undefined,totalsRowFunction:c[3]?'sum':'none'})),rows:R});
-      const last=4+R.length+(tot?1:0),ln={style:'thin',color:{argb:'FFDDE3E8'}};
-      for(let r=4;r<=last;r++)for(let c=1;c<=n;c++){const x=ws.getCell(r,c);x.border={top:ln,bottom:ln,left:ln,right:ln};
-        if(r===4){x.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1D2B3A'}};x.font={bold:true,color:{argb:'FFFFFFFF'}};x.alignment={horizontal:'center',vertical:'middle',wrapText:true}}
-        else{const f=cols[c-1][2];if(f)x.numFmt=FM[f];if(r===last&&tot)x.font={bold:true}}}
-      ws.getRow(4).height=26;cols.forEach((c,i)=>ws.getColumn(i+1).width=c[1]);
-    };
     tab('ملخص','الملخص المالي',[['البند',34],['القيمة (ج.م)',22,'n2']],[['إجمالي المشتريات',F.bv],['إجمالي المبيعات',F.sv],['ربح المبيعات',C.profit],['مصروفات عامة',F.exU],['تسويات الجرد والهالك',C.adj],['صافي الربح',F.prof],['قيمة المخزون (بالتكلفة)',F.sk],['لنا عند العملاء',F.ar],['علينا للمصانع',F.ap],['السيولة المتاحة',F.cash],['رأس المال المسجّل',F.cap],['إجمالي المشروع',F.eq]]);
     const B=sorted().filter(t=>t.kind==='buy'),L=sorted().filter(t=>t.kind==='sell');
     tab('المشتريات','سجل المشتريات',[['رقم',8],['التاريخ',13,'d'],['المصنع',24],['الصنف',16],['الكمية (طن)',13,'n3',1],['سعر الطن',13,'n2'],['الخصم',11,'n2',1],['الإجمالي',15,'n2',1],['نقل ومصروفات',15,'n2',1],['المدفوع',15,'n2',1],['المتبقي',15,'n2',1],['طريقة الدفع',14],['ملاحظة',30]],
@@ -1161,6 +1147,46 @@ async function xlsx(){
 }
 $('xlx').onclick=xlsx;
 
+
+function mkTab(wb){let ti=0;return(name,title,cols,rows,o)=>{o=o||{};
+  const n=cols.length,ws=wb.addWorksheet(name,{views:[{rightToLeft:true,state:'frozen',ySplit:4,showGridLines:false}],properties:{tabColor:{argb:'FFE0A526'}},pageSetup:{orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0}});
+  ws.mergeCells(1,1,1,n);ws.mergeCells(2,1,2,n);
+  ws.getCell(1,1).value='KAYAN For Feed — '+title;ws.getCell(1,1).font={bold:true,size:16,color:{argb:'FF1D2B3A'}};
+  ws.getCell(2,1).value=o.sub||('تاريخ التصدير: '+today()+' — عدد السجلات: '+rows.length);ws.getCell(2,1).font={color:{argb:'FF66768A'}};
+  const tot=cols.some(c=>c[3]),R=rows.length?rows:[cols.map(()=>null)];
+  ws.addTable({name:'T'+(++ti),ref:'A4',headerRow:true,totalsRow:tot,style:{theme:'TableStyleMedium2',showRowStripes:true},
+    columns:cols.map((c,i)=>({name:c[0],filterButton:true,totalsRowLabel:i===0&&tot?'الإجمالي':undefined,totalsRowFunction:c[3]?'sum':'none'})),rows:R});
+  const last=4+R.length+(tot?1:0),ln={style:'thin',color:{argb:'FFDDE3E8'}};
+  for(let r=4;r<=last;r++)for(let c=1;c<=n;c++){const x=ws.getCell(r,c);x.border={top:ln,bottom:ln,left:ln,right:ln};
+    if(r===4){x.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1D2B3A'}};x.font={bold:true,color:{argb:'FFFFFFFF'}};x.alignment={horizontal:'center',vertical:'middle',wrapText:true}}
+    else{const f=cols[c-1][2];if(f)x.numFmt=FM[f];if(r===last&&tot)x.font={bold:true}}}
+  if(o.kc!=null)rows.forEach((r,i)=>{const x=ws.getCell(5+i,o.kc+1);x.font={bold:true,color:{argb:r[o.kc]==='شراء'?'FFB4442F':'FF2F7D5B'}};x.alignment={horizontal:'center'}});
+  ws.getRow(4).height=26;cols.forEach((c,i)=>ws.getColumn(i+1).width=c[1]);return ws}}
+
+/* ---- تصدير سجل العمليات (شراء + بيع) ---- */
+const _csvOld=$('cx').onclick;$('cx').textContent='⬇ تصدير Excel احترافي';
+async function xlsxOps(){
+  const b=$('cx');b.disabled=true;b.textContent='جاري التجهيز…';
+  try{
+    try{await loadEJ()}catch(e){alert(e.message+'\nهيتنزّل ملف CSV بدل Excel المرة دي.');return _csvOld()}
+    const C=calc(),R=[...LR],D=d=>d?new Date(d+'T00:00:00Z'):null,xp=t=>t.tr+(C.xe[t.id]||0),wb=new ExcelJS.Workbook(),tab=mkTab(wb);
+    wb.creator='KAYAN For Feed';wb.created=new Date();wb.calcProperties={fullCalcOnLoad:true};
+    const fl=[$('fk').selectedOptions[0].text,$('ft').value?$('ft').selectedOptions[0].text:'',$('fs').value?'بحث: '+$('fs').value:'',$('fm').value?'شهر: '+$('fm').value:''].filter(Boolean),
+     sub='الفلتر: '+fl.join(' • ')+' — عدد العمليات: '+R.length+' — تاريخ التصدير: '+today();
+    const row=t=>{const v=V(t),bu=t.kind==='buy';return[t.no,D(t.date),bu?'شراء':'بيع',t.party,tn(t.tid),bu?'':(t.grade||''),bu?'':(t.ch||''),t.qty,t.price,t.disc||0,v,xp(t),t.paid,Math.round((v-t.paid)*100)/100,PM[pmOf(t)],t.tr>0?PM[t.trpm||'cash']:'',bu?null:(C.pf[t.id]||0),t.trn||'',t.note||'']};
+    const cols=z=>[['رقم',8],['التاريخ',13,'d'],['النوع',10],['المصنع / العميل',24],['الصنف / المخزن',16],['النوع / الدرجة',16],['طريقة البيع',14],['الكمية (طن)',13,'n3',z],['سعر الطن',13,'n2'],['الخصم',11,'n2',z],['الإجمالي بعد الخصم',17,'n2',z],['نقل ومصروفات',15,'n2',z],['المدفوع',15,'n2',z],['المتبقي',15,'n2',z],['طريقة الدفع',14],['المصروفات من',14],['الربح',15,'n2',z],['تفاصيل المصروفات',28],['ملاحظة',28]];
+    const pick=(cs,rs,ex)=>[cs.filter((_,i)=>!ex.includes(i)),rs.map(r=>r.filter((_,i)=>!ex.includes(i)))];
+    const rows=R.map(row),B=rows.filter(r=>r[2]==='شراء'),L=rows.filter(r=>r[2]==='بيع'),sm=(a,i)=>a.reduce((x,r)=>x+(+r[i]||0),0);
+    const ws=tab('الملخص','ملخص سجل العمليات',[['البيان',28],['مشتريات',20,'n2'],['مبيعات',20,'n2']],[['عدد العمليات',B.length,L.length],['الكمية (طن)',sm(B,7),sm(L,7)],['القيمة بعد الخصم',sm(B,10),sm(L,10)],['نقل ومصروفات',sm(B,11),sm(L,11)],['المدفوع',sm(B,12),sm(L,12)],['المتبقي',sm(B,13),sm(L,13)],['الربح',null,sm(L,16)]],{sub});
+    [2,3].forEach(c=>{ws.getCell(5,c).numFmt='0';ws.getCell(6,c).numFmt=FM.n3});
+    tab('كل العمليات','سجل العمليات — شراء وبيع',cols(0),rows,{sub,kc:2});
+    const [bc,br]=pick(cols(1),B,[2,5,6,16]);tab('المشتريات','سجل المشتريات',bc,br,{sub});
+    const [lc,lr]=pick(cols(1),L,[2]);tab('المبيعات','سجل المبيعات',lc,lr,{sub});
+    const buf=await wb.xlsx.writeBuffer(),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));a.download='kayan-operations-'+today()+'.xlsx';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+  }catch(e){alert('تعذّر التصدير: '+(e.message||e))}
+  finally{b.disabled=false;b.textContent='⬇ تصدير Excel احترافي'}
+}
+$('cx').onclick=xlsxOps;
 /* ---- تحليلات ---- */
 const TB=(h,r)=>'<div class="scroll"><table style="min-width:0"><thead><tr>'+h.map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>'+(r.length?r.join(''):'<tr><td colspan="'+h.length+'" class="empty">لا توجد بيانات كفاية.</td></tr>')+'</tbody></table></div>';
 const spark=a=>{a=a.slice(-20);if(a.length<2)return'';const w=90,h=24,mn=Math.min(...a),r=(Math.max(...a)-mn)||1;return'<svg width="'+w+'" height="'+h+'" aria-hidden="true"><polyline fill="none" stroke="var(--wheat)" stroke-width="2" points="'+a.map((v,i)=>(i*w/(a.length-1)).toFixed(1)+','+(h-2-(v-mn)*(h-4)/r).toFixed(1)).join(' ')+'"/></svg>'};
