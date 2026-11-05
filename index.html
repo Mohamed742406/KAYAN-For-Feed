@@ -260,7 +260,7 @@ create policy "own rows" on kayan_sync for all
 
 <div class="card pane" data-p="rep">
   <h2>أرصدة الخزن والمحافظ</h2>
-  <p class="sub" style="margin-bottom:8px">كل خزنة ومحفظة لوحدها. لو انستاباي أو فودافون كاش مع حد تاني (زي حمادة) ضيف اسمه وهيظهر في كل قوائم اختيار الخزنة.</p>
+  <p class="sub" style="margin-bottom:8px">كل خزنة ومحفظة لوحدها. لو انستاباي أو فودافون كاش أو حساب بنكي مع حد تاني (زي حمادة) ضيف اسمه وهيظهر في كل قوائم اختيار الخزنة.</p>
   <div class="grid" id="walc"></div>
   <form class="bar" id="hlf" style="margin-top:10px"><input id="hln" placeholder="اسم اللي معاه محفظة (مثلًا: حمادة)" required><button class="btn" type="submit">إضافة شخص</button></form>
   <div class="bar" id="hll"></div>
@@ -471,7 +471,7 @@ const sorted=()=>[...S.tx].sort((a,b)=>a.date.localeCompare(b.date)||a.id-b.id);
 $('d').value=today();
 const dateOK=d=>{const k=(new Date(d)-new Date(today()))/864e5;return(k<=7&&k>=-400)||confirm('التاريخ '+d+' بعيد عن النهاردة — متأكد إنه صح؟')};
 const PM={cash:'نقدي',insta:'انستاباي',vf:'فودافون كاش',bank:'حساب بنكي',credit:'آجل'};
-function syncPM(){const hl=S.hl||[],o=[['cash','نقدي'],['insta','انستاباي'+(hl.length?' — معايا':'')],...hl.map(n=>['insta@'+n,'انستاباي — '+n]),['vf','فودافون كاش'+(hl.length?' — معايا':'')],...hl.map(n=>['vf@'+n,'فودافون كاش — '+n]),['bank','حساب بنكي'],['credit','آجل']];
+function syncPM(){const hl=S.hl||[],o=[['cash','نقدي'],['insta','انستاباي'+(hl.length?' — معايا':'')],...hl.map(n=>['insta@'+n,'انستاباي — '+n]),['vf','فودافون كاش'+(hl.length?' — معايا':'')],...hl.map(n=>['vf@'+n,'فودافون كاش — '+n]),['bank','حساب بنكي'+(hl.length?' — معايا':'')],...hl.map(n=>['bank@'+n,'حساب بنكي — '+n]),['credit','آجل']];
   Object.keys(PM).forEach(k=>delete PM[k]);o.forEach(([k,v])=>PM[k]=v)}
 function wopts(cr){return Object.keys(PM).filter(k=>cr||k!=='credit').map(k=>`<option value="${esc(k)}">${esc(PM[k])}</option>`).join('')}
 function fillMS(){['pm','gxp','kpm','trff','trft','trm','rtw'].forEach(i=>{const e=$(i);if(!e)return;const cr=[...e.options].some(o=>o.value==='credit'),c=e.value;e.innerHTML=wopts(cr);if(c&&PM[c])e.value=c})}
@@ -610,7 +610,7 @@ document.addEventListener('click',e=>{const d=e.target.dataset;if(!d)return;
 
 ['fk','ft','fm'].forEach(i=>$(i).onchange=()=>{opsLim=50;render()});$('fs').oninput=()=>{opsLim=50;clearTimeout(_fst);_fst=setTimeout(render,250)};
 document.addEventListener('click',e=>{if(e.target.id==='opsmore'){opsLim+=50;render()}else if(e.target.id==='mvmore'){mvLim+=100;renderS(calc())}});
-function renderW(){const m=mbal(),cl=v=>v>=-0.005?'pos':'neg',ks=Object.keys(m).filter(k=>k==='cash'||k==='insta'||k==='vf'||k.includes('@')||Math.abs(m[k].bal)>0.005),
+function renderW(){const m=mbal(),cl=v=>v>=-0.005?'pos':'neg',ks=Object.keys(m).filter(k=>k==='cash'||k==='insta'||k==='vf'||k==='bank'||k.includes('@')||Math.abs(m[k].bal)>0.005),
   hh=ks.map(k=>`<div class="k"><small>${k==='cash'?'💵 ':k.startsWith('insta')?'📲 ':k.startsWith('vf')?'📱 ':'🏦 '}${esc(PM[k])}</small><b class="${cl(m[k].bal)}">${M(m[k].bal)}</b></div>`).join('');
   $('wal').innerHTML=hh;$('walc').innerHTML=hh;
   $('hll').innerHTML=(S.hl||[]).map(n=>`<span class="chip">${esc(n)} <button type="button" class="x" data-hld="${esc(n)}" aria-label="حذف">✕</button></span>`).join('')}
