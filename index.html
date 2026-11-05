@@ -161,6 +161,7 @@ th{font-size:.8rem;border-bottom:2px solid var(--line)}
 <p class="sub">شراء وبيع من المصانع — الكميات بالطن</p></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end"><span class="chip" id="lfs" hidden></span><button id="svs" type="button" class="svs" title="حالة الحفظ والنسخ الاحتياطي — اضغط للتفاصيل">…</button><button id="thm" class="btn ghost" type="button" title="تبديل الوضع الليلي / النهاري">🌙 ليلي</button></div></div>
 
 <div class="hero"><div><span class="lb">المخزون الحالي</span><b class="big" id="stk">0 طن</b></div><div id="capbox"></div></div>
+<div class="grid" id="wal" style="margin-bottom:10px"></div>
 <div id="demo"></div>
 <div id="warn"></div>
 <div class="grid" id="kpis"></div>
@@ -189,6 +190,27 @@ th{font-size:.8rem;border-bottom:2px solid var(--line)}
   </form>
 </div>
 
+<details class="card pane fold" data-p="ops" id="rtc"><summary>↩ مرتجع / استبدال</summary>
+<p class="sub" style="margin-bottom:8px">مثال: بعت لعميل 2 طن ورجّع 0.5 طن — سجّله مرتجع (والباقي يتخصم من حسابه أو ترجّع له فلوس)، أو استبدال بصنف تاني. الكمية بترجع المخزون والحسابات والخزن تتعدّل لوحدها.</p>
+<form class="g" id="rtf">
+<div><label for="rtk">النوع</label><select id="rtk"><option value="sell">مرتجع من عميل (كنت بعتله)</option><option value="buy">مرتجع لمصنع (كنت اشتريت منه)</option></select></div>
+<div><label for="rtd">التاريخ</label><input id="rtd" type="date" required></div>
+<div><label for="rtp" id="rtpl">اسم العميل</label><input id="rtp" list="rtpd" required><datalist id="rtpd"></datalist></div>
+<div><label for="rtm">العملية</label><select id="rtm"><option value="return">مرتجع بس</option><option value="exchange">استبدال بصنف تاني</option></select></div>
+<div><label for="rtt">الصنف المرتجع (من مخزن)</label><select id="rtt"></select></div>
+<div><label for="rtg">نوعه (نمرة 1، مكسر...)</label><input id="rtg" list="gl"></div>
+<div><label for="rtq">الكمية المرتجعة (طن)</label><input id="rtq" type="number" step="0.001" min="0.001" required></div>
+<div><label for="rtr">سعر الطن (ج.م)</label><input id="rtr" type="number" step="0.01" min="0" required></div>
+<div class="rtx" hidden><label for="rt2t">الصنف البديل (من مخزن)</label><select id="rt2t"></select></div>
+<div class="rtx" hidden><label for="rt2g">نوعه</label><input id="rt2g" list="gl"></div>
+<div class="rtx" hidden><label for="rt2q">كمية البديل (طن)</label><input id="rt2q" type="number" step="0.001" min="0"></div>
+<div class="rtx" hidden><label for="rt2r">سعر طن البديل (ج.م)</label><input id="rt2r" type="number" step="0.01" min="0"></div>
+<div><label for="rtf1" id="rtfl">رجّعنا للعميل فلوس (ج.م)</label><input id="rtf1" type="number" step="0.01" min="0" value="0"></div>
+<div class="rtx" hidden><label for="rtf2" id="rtgl">العميل دفع لنا فرق البديل (ج.م)</label><input id="rtf2" type="number" step="0.01" min="0" value="0"></div>
+<div><label for="rtw">الخزنة / المحفظة</label><select id="rtw"></select></div>
+<div><label for="rtn">ملاحظة</label><input id="rtn"></div>
+<div class="tot" id="rtt2"></div><div class="err" id="rte" role="alert"></div>
+<button class="btn" type="submit">حفظ</button></form></details>
 <div class="card pane" data-p="set">
   <h2>حفظ واستعادة البيانات</h2>
   <p class="sub" id="bst"></p>
@@ -236,6 +258,13 @@ create policy "own rows" on kayan_sync for all
   <form class="bar" id="tf" style="margin:10px 0 0"><input id="tn" placeholder="اسم صنف جديد" required><button class="btn" type="submit">إضافة صنف</button></form>
 </details>
 
+<div class="card pane" data-p="rep">
+  <h2>أرصدة الخزن والمحافظ</h2>
+  <p class="sub" style="margin-bottom:8px">كل خزنة ومحفظة لوحدها. لو انستاباي أو فودافون كاش مع حد تاني (زي حمادة) ضيف اسمه وهيظهر في كل قوائم اختيار الخزنة.</p>
+  <div class="grid" id="walc"></div>
+  <form class="bar" id="hlf" style="margin-top:10px"><input id="hln" placeholder="اسم اللي معاه محفظة (مثلًا: حمادة)" required><button class="btn" type="submit">إضافة شخص</button></form>
+  <div class="bar" id="hll"></div>
+</div>
 <div class="card pane" data-p="rep">
   <h2>الحسابات الشاملة</h2>
   <div id="acc"></div>
@@ -416,7 +445,7 @@ try{const o=JSON.parse(localStorage.getItem('pasta_waste_tx')||'[]');if(o.length
 const $=i=>document.getElementById(i);
 let _u=0;const uid=()=>{_u=Math.max(Date.now(),_u+1);return _u};
 const today=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)};
-function norm(){['ex','sr','ct','pay','adj','tx','cap','tfr'].forEach(k=>S[k]=S[k]||[]);
+function norm(){['ex','sr','ct','pay','adj','tx','cap','tfr','hl'].forEach(k=>S[k]=S[k]||[]);
   const seen={};S.seq=Math.max(S.seq||0,...S.tx.map(t=>t.no||0));
   S.tx.forEach(t=>{if(t.no&&t.grp)seen['g'+t.grp]=t.no});
   [...S.tx].sort((a,b)=>a.date.localeCompare(b.date)||a.id-b.id).forEach(t=>{if(t.no)return;const k=t.grp?'g'+t.grp:null;if(k&&seen[k]){t.no=seen[k];return}t.no=++S.seq;if(k)seen[k]=t.no});
@@ -442,6 +471,10 @@ const sorted=()=>[...S.tx].sort((a,b)=>a.date.localeCompare(b.date)||a.id-b.id);
 $('d').value=today();
 const dateOK=d=>{const k=(new Date(d)-new Date(today()))/864e5;return(k<=7&&k>=-400)||confirm('التاريخ '+d+' بعيد عن النهاردة — متأكد إنه صح؟')};
 const PM={cash:'نقدي',insta:'انستاباي',vf:'فودافون كاش',bank:'حساب بنكي',credit:'آجل'};
+function syncPM(){const hl=S.hl||[],o=[['cash','نقدي'],['insta','انستاباي'+(hl.length?' — معايا':'')],...hl.map(n=>['insta@'+n,'انستاباي — '+n]),['vf','فودافون كاش'+(hl.length?' — معايا':'')],...hl.map(n=>['vf@'+n,'فودافون كاش — '+n]),['bank','حساب بنكي'],['credit','آجل']];
+  Object.keys(PM).forEach(k=>delete PM[k]);o.forEach(([k,v])=>PM[k]=v)}
+function wopts(cr){return Object.keys(PM).filter(k=>cr||k!=='credit').map(k=>`<option value="${esc(k)}">${esc(PM[k])}</option>`).join('')}
+function fillMS(){['pm','gxp','kpm','trff','trft','trm','rtw'].forEach(i=>{const e=$(i);if(!e)return;const cr=[...e.options].some(o=>o.value==='credit'),c=e.value;e.innerHTML=wopts(cr);if(c&&PM[c])e.value=c})}
 const pmOf=t=>t.pm||(t.paid>0?'cash':'credit');
 const pdv=v=>$('pm').value==='credit'?0:$('pd').value===''?v:Math.min(+$('pd').value,v);
 const bal=r=>{r=Math.round(r*100)/100;return r===0?'مسدّد':r>0?'لنا '+M(r):'علينا '+M(-r)};
@@ -480,7 +513,7 @@ function invHead(title){const dt=new Date().toLocaleString('en-GB',{hour12:false
 function pidx(){const C=calc();if(C.pi)return C.pi;const tx=new Map(),pay=new Map();
   S.tx.forEach(t=>{let a=tx.get(t.party);if(!a)tx.set(t.party,a=[]);a.push(t)});S.pay.forEach(x=>{let a=pay.get(x.party);if(!a)pay.set(x.party,a=[]);a.push(x)});return C.pi={tx,pay}}
 function calc0(){
-  const st={},pf={},no={},ca={},{xe,lk,xl,xd}=trips(),neg=[],led={},av={};let profit=0,adj=0,wst=0;
+  const LC={},st={},pf={},no={},ca={},{xe,lk,xl,xd}=trips(),neg=[],led={},av={};let profit=0,adj=0,wst=0;
   const get=id=>st[id]||(st[id]={q:0,c:0}),fix=s=>{s.q=Math.round(s.q*1e6)/1e6;if(s.q===0)s.c=0},
    mv=(id,t,txt,qi,qo)=>{const s=get(id);(led[id]=led[id]||[]).push({d:t.date,id:t.id,txt,qi,qo,q:s.q,c:s.c});if(s.q<-1e-9)neg.push({tid:id,date:t.date,q:s.q})};
   S.types.forEach(t=>get(t.id));
@@ -491,7 +524,7 @@ function calc0(){
     if(t.kind==='adj'){const s=get(t.tid),a=s.q>0?s.c/s.q:0,v=t.qty*a;s.q+=t.qty;s.c+=v;fix(s);adj+=v;if(t.w)wst+=v;av[t.id]=v;mv(t.tid,t,(t.w?'هالك':'جرد وتسوية')+(t.note?' — '+t.note:''),t.qty>0?t.qty:0,t.qty<0?-t.qty:0);return}
     no[t.id]=t.no;const s=get(t.tid);
     if(t.kind==='buy'){s.q+=t.qty;s.c+=V(t)+t.tr+(xe[t.id]||0);fix(s);mv(t.tid,t,'شراء — '+t.party,t.qty,0)}
-    else{const a=s.q>0?s.c/s.q:0,p=V(t)-t.tr-(xe[t.id]||0)-t.qty*a;pf[t.id]=p;ca[t.id]=a;profit+=p;s.c-=t.qty*a;s.q-=t.qty;fix(s);mv(t.tid,t,'بيع — '+t.party+(t.grade?' ('+t.grade+')':''),0,t.qty)}});
+    else{const kk=t.party+'|'+t.tid,a=(t.qty<0&&LC[kk]!=null)?LC[kk]:(s.q>0?s.c/s.q:0);if(t.qty>0)LC[kk]=a;const p=V(t)-t.tr-(xe[t.id]||0)-t.qty*a;pf[t.id]=p;ca[t.id]=a;profit+=p;s.c-=t.qty*a;s.q-=t.qty;fix(s);mv(t.tid,t,'بيع — '+t.party+(t.grade?' ('+t.grade+')':''),0,t.qty)}});
   return{st,pf,no,profit,xe,lk,xl,ca,xd,neg,led,adj,av,wst};
 }
 function stockAt(tid,date){const e=(calc().led[tid]||[]).filter(x=>x.d<=date);return e.length?e[e.length-1].q:0}
@@ -501,7 +534,7 @@ function trips(){const xe={},lk=new Set(),xl={},xd={},T=[...S.tx].sort((a,b)=>a.
   return{xe,lk,xl,xd}}
 
 function render(){
-  _cc=null;const C0=calc(),{st,pf,no,profit,xe,lk,ca,xd,adj,neg,wst}=C0;ADJ=adj;
+  syncPM();fillMS();_cc=null;const C0=calc(),{st,pf,no,profit,xe,lk,ca,xd,adj,neg,wst}=C0;ADJ=adj;
   let q=0,c=0;S.types.forEach(t=>{q+=st[t.id].q;c+=st[t.id].c});
   $('stk').textContent=fmt(q,3)+' طن';
   const F=fin(C0);let wh='';if(S.cap.length&&F.cash<-0.005)wh+='<div class="warn bad">⚠️ السيولة المتاحة بالسالب ('+M(F.cash)+') — المدفوعات والمصروفات أكبر من رأس المال والتحصيلات. زوّد رأس المال بالفرق أو راجع المدفوعات.</div>';{const MB=mbal(),ng=Object.keys(MB).filter(k=>MB[k].bal<-0.005);if(S.cap.length&&ng.length)wh+='<div class="warn bad">⚠️ رصيد '+ng.map(k=>PM[k]+' ('+M(MB[k].bal)+')').join(' • ')+' بالسالب — سجّل رأس المال أو التحويلات على الخزنة الصحيحة (راجع جدول الحسابات الشاملة في تبويب الحسابات).</div>'}if(neg.length)wh+='<div class="warn bad">⚠️ المخزون بالسالب: '+neg.slice(0,3).map(n=>esc(tn(n.tid))+' '+fmt(n.q,3)+' طن بتاريخ '+n.date).join(' • ')+' — فيه عملية بيع/فرز مسجلة بكمية أكبر من المتاح في وقتها. راجع التواريخ أو الكميات (أرباح العمليات دي غير دقيقة لحد ما تتصلح).</div>';
@@ -533,9 +566,9 @@ function render(){
   $('th').innerHTML='<tr>'+H.map(([a,b])=>`<th${b?` title="${esc(b)}"`:''}>${a}</th>`).join('')+'</tr>';
   $('tb').innerHTML=rows.length?rows.slice(0,opsLim).map(t=>{const v=V(t),p=pf[t.id],tc=t.tr+(xe[t.id]||0),rem=Math.round((v-t.paid)*100)/100,buy=t.kind==='buy',unit=buy?(t.qty?(v+tc)/t.qty:0):(ca[t.id]||0),
     dtl=(xd[t.id]||[]).map(x=>x.cat+': '+fmt(x.amt)).concat(t.tr?['نقل: '+fmt(t.tr)]:[]).join(' | ');
-    return`<tr><td>${no[t.id]}</td><td>${t.date}</td><td><span class="tag ${buy?'b':'s'}">${buy?'شراء':'بيع'}</span></td><td>${esc(t.party)}</td><td>${esc(t.grade||tn(t.tid))}${t.ch?'<br><small class="sub">'+esc(t.ch)+'</small>':''}</td><td>${fmt(t.qty,3)}</td><td>${M(t.price)}</td><td>${M(v)}${t.disc>0?'<br><small class="sub">بعد خصم '+fmt(t.disc)+'</small>':''}</td><td title="${esc(dtl)}">${tc?M(tc):'—'}${t.tr>0?'<br><small class="sub">من '+PM[t.trpm||'cash']+'</small>':''}${(xd[t.id]||[]).length?' <small class="sub">('+xd[t.id].length+')</small>':''}${t.trn?'<br><small class="sub" style="white-space:normal">'+esc(t.trn)+'</small>':''}</td><td>${M(unit)}</td><td><b>${buy?M(v+tc):M(v-tc)}</b><br><small class="sub">${buy?'تكلفة داخلة المخزون':'صافي بعد المصروفات'}</small></td>${buy?'':`<td class="${p>=0?'pos':'neg'}">${p===undefined?'—':M(p)}</td>`}<td>${M(t.paid)}</td><td class="${rem>0?'neg':''}">${rem>0?M(rem):'مسدّد'}</td><td>${PM[pmOf(t)]}</td><td style="white-space:nowrap"><button class="x" data-inv="${t.id}" title="طباعة فاتورة" aria-label="طباعة فاتورة">🖨</button><button class="x" data-ted="${t.id}" title="تعديل" aria-label="تعديل العملية">✎</button><button class="x" data-del="${t.id}" aria-label="حذف العملية">✕</button></td></tr>`}).join('')+(rows.length>opsLim?`<tr><td colspan="${H.length}" class="empty"><button type="button" class="btn ghost" id="opsmore">عرض المزيد (${Math.min(50,rows.length-opsLim)} أخرى) — معروض ${opsLim} من ${rows.length}</button></td></tr>`:'')
+    return`<tr><td>${no[t.id]}</td><td>${t.date}</td><td><span class="tag ${buy?'b':'s'}">${t.rt?'مرتجع':t.rtx?'استبدال':buy?'شراء':'بيع'}</span></td><td>${esc(t.party)}</td><td>${esc(t.grade||tn(t.tid))}${t.ch?'<br><small class="sub">'+esc(t.ch)+'</small>':''}</td><td>${fmt(t.qty,3)}</td><td>${M(t.price)}</td><td>${M(v)}${t.disc>0?'<br><small class="sub">بعد خصم '+fmt(t.disc)+'</small>':''}</td><td title="${esc(dtl)}">${tc?M(tc):'—'}${t.tr>0?'<br><small class="sub">من '+PM[t.trpm||'cash']+'</small>':''}${(xd[t.id]||[]).length?' <small class="sub">('+xd[t.id].length+')</small>':''}${t.trn?'<br><small class="sub" style="white-space:normal">'+esc(t.trn)+'</small>':''}</td><td>${M(unit)}</td><td><b>${buy?M(v+tc):M(v-tc)}</b><br><small class="sub">${buy?'تكلفة داخلة المخزون':'صافي بعد المصروفات'}</small></td>${buy?'':`<td class="${p>=0?'pos':'neg'}">${p===undefined?'—':M(p)}</td>`}<td>${M(t.paid)}</td><td class="${rem>0?'neg':''}">${rem>0?M(rem):'مسدّد'}</td><td>${PM[pmOf(t)]}</td><td style="white-space:nowrap"><button class="x" data-inv="${t.id}" title="طباعة فاتورة" aria-label="طباعة فاتورة">🖨</button><button class="x" data-ted="${t.id}" title="تعديل" aria-label="تعديل العملية">✎</button><button class="x" data-del="${t.id}" aria-label="حذف العملية">✕</button></td></tr>`}).join('')+(rows.length>opsLim?`<tr><td colspan="${H.length}" class="empty"><button type="button" class="btn ghost" id="opsmore">عرض المزيد (${Math.min(50,rows.length-opsLim)} أخرى) — معروض ${opsLim} من ${rows.length}</button></td></tr>`:'')
    :`<tr><td colspan="${H.length}" class="empty">لا توجد عمليات مطابقة.</td></tr>`;
-    renderRest();renderC();renderA(profit,exT,exU);renderS(C0);renderK(F);demoUI();dbRender(C0);bstat();
+    renderRest();renderC();renderA(profit,exT,exU);renderS(C0);renderK(F);demoUI();dbRender(C0);bstat();renderW();renderRT();
 }
 
 document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{kind=b.dataset.t;
@@ -577,6 +610,32 @@ document.addEventListener('click',e=>{const d=e.target.dataset;if(!d)return;
 
 ['fk','ft','fm'].forEach(i=>$(i).onchange=()=>{opsLim=50;render()});$('fs').oninput=()=>{opsLim=50;clearTimeout(_fst);_fst=setTimeout(render,250)};
 document.addEventListener('click',e=>{if(e.target.id==='opsmore'){opsLim+=50;render()}else if(e.target.id==='mvmore'){mvLim+=100;renderS(calc())}});
+function renderW(){const m=mbal(),cl=v=>v>=-0.005?'pos':'neg',ks=Object.keys(m).filter(k=>k==='cash'||k==='insta'||k==='vf'||k.includes('@')||Math.abs(m[k].bal)>0.005),
+  hh=ks.map(k=>`<div class="k"><small>${k==='cash'?'💵 ':k.startsWith('insta')?'📲 ':k.startsWith('vf')?'📱 ':'🏦 '}${esc(PM[k])}</small><b class="${cl(m[k].bal)}">${M(m[k].bal)}</b></div>`).join('');
+  $('wal').innerHTML=hh;$('walc').innerHTML=hh;
+  $('hll').innerHTML=(S.hl||[]).map(n=>`<span class="chip">${esc(n)} <button type="button" class="x" data-hld="${esc(n)}" aria-label="حذف">✕</button></span>`).join('')}
+$('hlf').onsubmit=e=>{e.preventDefault();const n=$('hln').value.trim();if(!n||n.includes('@'))return;if(!S.hl.includes(n))S.hl.push(n);$('hln').value='';save();render()};
+document.addEventListener('click',e=>{const n=e.target.dataset&&e.target.dataset.hld;if(!n)return;
+  const u=[...S.tx.flatMap(t=>[t.pm,t.trpm]),...S.pay.map(x=>x.method),...S.ex.map(x=>x.pm),...S.cap.map(x=>x.pm),...S.tfr.flatMap(x=>[x.from,x.to])].some(k=>k&&String(k).split('@')[1]===n);
+  if(u)return alert('الشخص ده عليه حركات مسجلة — مينفعش يتحذف.');if(confirm('حذف '+n+'؟')){S.hl=S.hl.filter(x=>x!==n);save();render()}});
+function rtU(){const k=$('rtk').value,ex=$('rtm').value==='exchange',s=k==='sell';
+  $('rtpl').textContent=s?'اسم العميل':'اسم المصنع';$('rtfl').textContent=s?'رجّعنا للعميل فلوس (ج.م)':'المصنع رجّع لنا فلوس (ج.م)';$('rtgl').textContent=s?'العميل دفع لنا فرق البديل (ج.م)':'دفعنا للمصنع فرق البديل (ج.م)';
+  document.querySelectorAll('.rtx').forEach(e=>e.hidden=!ex);
+  const q=+$('rtq').value||0,p=+$('rtr').value||0,q2=+$('rt2q').value||0,p2=+$('rt2r').value||0,a=q*p;
+  $('rtt2').innerHTML=a?'قيمة المرتجع '+M(a)+(ex&&q2&&p2?' — قيمة البديل '+M(q2*p2)+' — الفرق '+M(q2*p2-a):' — بتتخصم من حساب '+esc($('rtp').value||'الطرف ده')+' والباقي (لو رجّعت فلوس) بتسجّله في خانة الفلوس'):''}
+function renderRT(){const k=$('rtk').value,ts=S.types.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('');
+  ['rtt','rt2t'].forEach(i=>{const c=$(i).value;$(i).innerHTML=ts;if(c&&S.types.some(t=>String(t.id)===c))$(i).value=c});
+  $('rtpd').innerHTML=[...new Set([...S.ct.filter(c=>c.kind===(k==='sell'?'customer':'factory')).map(c=>c.name),...S.tx.filter(t=>t.kind===k).map(t=>t.party)])].map(n=>`<option value="${esc(n)}">`).join('');rtU()}
+$('rtd').value=today();
+['rtk','rtm','rtq','rtr','rt2q','rt2r','rtp'].forEach(i=>{$(i).addEventListener('input',rtU);$(i).addEventListener('change',rtU)});$('rtk').addEventListener('change',renderRT);
+$('rtf').onsubmit=e=>{e.preventDefault();const k=$('rtk').value,ex=$('rtm').value==='exchange',party=$('rtp').value.trim(),date=$('rtd').value,er=m=>{$('rte').textContent=m},
+  q=+$('rtq').value,p=+$('rtr').value,f1=+$('rtf1').value||0,f2=ex?(+$('rtf2').value||0):0,pm=$('rtw').value,note=$('rtn').value.trim();
+  if(!party||!(q>0))return er('اكتب الاسم والكمية المرتجعة.');
+  const L=[{tid:+$('rtt').value,grade:$('rtg').value.trim(),qty:-q,price:p,paid:-f1,rt:1}];
+  if(ex){const q2=+$('rt2q').value,p2=+$('rt2r').value;if(!(q2>0))return er('اكتب كمية البديل.');L.push({tid:+$('rt2t').value,grade:$('rt2g').value.trim(),qty:q2,price:p2,paid:f2,rtx:1})}
+  if(!dateOK(date))return;
+  const r=safe(()=>{const nn=++S.seq,ids=L.map(()=>uid()),g=ids[0];L.forEach((l,i)=>S.tx.push({id:ids[i],grp:g,no:nn,kind:k,date,party,tid:l.tid,grade:k==='sell'?l.grade:'',ch:'',qty:l.qty,price:l.price,disc:0,tr:0,trn:'',paid:l.paid,pm,trpm:'cash',note:(l.rt?'مرتجع':'استبدال (بديل)')+(note?' — '+note:''),rt:l.rt,rtx:l.rtx}))});
+  if(r)return er(r);autoCt(party,k==='sell'?'customer':'factory');save();er('');['rtq','rtr','rt2q','rt2r','rtn'].forEach(i=>$(i).value='');$('rtf1').value=0;$('rtf2').value=0;render()};
 /* ===== الحفظ والاستعادة ===== */
 const TS=()=>{const d=new Date();return today()+'-'+String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0')};
 const bmsg=(t,ok)=>{const e=$('bm');e.textContent=t;e.style.color=ok?'var(--sell)':''};
@@ -598,7 +657,7 @@ function check(o){const bad=m=>{throw m};
   chk('pay','الدفعات',x=>hasD(x)&&N(x.amt)&&(x.kind==='buy'||x.kind==='sell')&&str(x.party));
   chk('adj','الجرد والهالك',x=>hasD(x)&&ids.has(x.tid)&&N(x.qty));
   chk('cap','رأس المال',x=>hasD(x)&&N(x.amt)&&(x.kind==='in'||x.kind==='out'));
-  chk('tfr','التحويلات',x=>hasD(x)&&N(x.amt)&&KS.includes(x.from)&&KS.includes(x.to));
+  chk('tfr','التحويلات',x=>hasD(x)&&N(x.amt)&&KS.includes(String(x.from).split('@')[0])&&KS.includes(String(x.to).split('@')[0]));
   const seen=new Set();o.tx.forEach(t=>{if(seen.has(t.id))bad('فيه عمليات مكررة في الملف.');seen.add(t.id)});
   ['ex','sr','ct','pay','adj','cap','tfr'].forEach(k=>(o[k]||[]).forEach(x=>{if(!N(x.id))x.id=uid()}));
   o.tx.forEach(t=>{t.tr=N(t.tr)?t.tr:0;t.disc=N(t.disc)?t.disc:0;if(!N(t.paid))t.paid=t.qty*t.price-t.disc});
@@ -779,7 +838,7 @@ function det(c,pf){const n=c.name,C=calc(),f=c.kind==='factory',p=pstat(n,pf),Q=
   <p class="sub">ملخص المعروض: ${TG.length} رحلة — ${fmt(sm(g=>g.q),3)} طن — إجمالي ${M(sm(g=>g.v))} — نقل ومصروفات ${M(sm(g=>g.tc))} — مدفوع في الرحلات ${M(sm(g=>g.pd))} + دفعات لاحقة ${M(PYs)}${f?'':' — ربح '+M(sm(g=>g.pf))}</p>
   <div class="scroll"><table style="min-width:900px"><thead><tr><th>التاريخ</th><th>البيان</th><th>الكمية</th><th>الإجمالي</th><th>نقل ومصروفات</th><th>المدفوع</th><th>طريقة الدفع</th><th>المتبقي</th><th>الرصيد</th><th></th></tr></thead><tbody>${lr}</tbody></table></div></div>
   <h2 style="margin-top:12px">تسجيل دفعة ${f?'للمصنع':'من العميل'}</h2>
-  <form class="g" id="pyf"><div><label>التاريخ</label><input id="pyd" type="date" value="${today()}" required></div><div><label>المبلغ (ج.م)</label><input id="pya" type="number" step="0.01" min="0.01" required></div><div><label>طريقة الدفع</label><select id="pym"><option value="cash">نقدي</option><option value="insta">انستاباي</option><option value="vf">فودافون كاش</option><option value="bank">حساب بنكي</option></select></div><div><label>ملاحظة</label><input id="pyn"></div><button class="btn" type="submit">حفظ الدفعة</button><div class="err" id="pye" role="alert"></div></form></div>`}
+  <form class="g" id="pyf"><div><label>التاريخ</label><input id="pyd" type="date" value="${today()}" required></div><div><label>المبلغ (ج.م)</label><input id="pya" type="number" step="0.01" min="0.01" required></div><div><label>طريقة الدفع</label><select id="pym">${wopts()}</select></div><div><label>ملاحظة</label><input id="pyn"></div><button class="btn" type="submit">حفظ الدفعة</button><div class="err" id="pye" role="alert"></div></form></div>`}
 function renderA(profit,exT,exU){
   const su=(a,f)=>a.reduce((s,t)=>s+f(t),0),B=S.tx.filter(t=>t.kind==='buy'),L=S.tx.filter(t=>t.kind==='sell'),PY=k=>S.pay.filter(x=>x.kind===k),
    sv=su(L,t=>V(t)),bv=su(B,t=>V(t)),cin=su(L,t=>t.paid)+su(PY('sell'),x=>x.amt),cout=su(B,t=>t.paid)+su(PY('buy'),x=>x.amt),tr=su(S.tx,t=>t.tr),
@@ -893,7 +952,7 @@ function setEdit(form,id,label){form.dataset.edit=id;const dt=form.closest('deta
 function endEditF(form){delete form.dataset.edit;const b=form.querySelector('button[type=submit]');if(b&&b.dataset.t0)b.textContent=b.dataset.t0;const c=form.querySelector('.ecx');if(c)c.remove()}
 function cancelEdit(form){endEditF(form);form.reset();form.querySelectorAll('input[type=date]').forEach(i=>i.value=today());if(form.id==='sf'){$('so').innerHTML='';orow();orow();prev()}if(form.id==='kf')kvis()}
 function endEdit(){tedit=null;$('fh').textContent='تسجيل عملية جديدة';$('fs2').textContent='حفظ العملية';$('ecn').hidden=true}
-function startEdit(id){const t=S.tx.find(x=>x.id===id);if(!t)return;const G=t.grp?S.tx.filter(x=>x.grp===t.grp):[t];
+function startEdit(id){const t=S.tx.find(x=>x.id===id);if(!t)return;if(t.rt||t.rtx){alert('المرتجع/الاستبدال مالوش تعديل — احذفه وسجّله من جديد.');return}const G=t.grp?S.tx.filter(x=>x.grp===t.grp):[t];
   document.querySelector('.seg button[data-t="'+t.kind+'"]').click();
   tedit={ids:G.map(x=>x.id),rep:Math.min(...G.map(x=>x.id)),no:t.no};
   show('ops');$('d').value=t.date;$('p').value=t.party;pinfo();$('ty').value=t.tid;
@@ -947,7 +1006,7 @@ function fin(C){C=C||calc();
 // ===== الخزن: رصيد كل وسيلة دفع فعليًا =====
 function mbal(){const m={};Object.keys(PM).filter(k=>k!=='credit').forEach(k=>m[k]={i:0,o:0,x:0,c:0,t:0,bal:0});
   const g=k=>m[k]||m.cash;
-  S.tx.forEach(t=>{if(t.paid>0)g(pmOf(t))[t.kind==='sell'?'i':'o']+=t.paid;if(t.tr>0)g(t.trpm).x+=t.tr});
+  S.tx.forEach(t=>{if(t.paid!==0)g(pmOf(t))[t.kind==='sell'?'i':'o']+=t.paid;if(t.tr>0)g(t.trpm).x+=t.tr});
   S.pay.forEach(x=>{g(x.method)[x.kind==='sell'?'i':'o']+=x.amt});
   S.ex.forEach(x=>{g(x.pm).x+=x.amt});
   S.cap.forEach(x=>{g(x.pm).c+=x.kind==='in'?x.amt:-x.amt});
