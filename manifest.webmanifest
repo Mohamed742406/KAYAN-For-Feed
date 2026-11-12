@@ -1,1 +1,44 @@
-{"name":"KAYAN For Feed","short_name":"KAYAN","lang":"ar","dir":"rtl","start_url":"./","scope":"./","display":"standalone","background_color":"#f3f5f6","theme_color":"#e0a526","icons":[{"src":"icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},{"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}
+{
+  "id": "https://mohamed742406.github.io/KAYAN-For-Feed/",
+  "name": "KAYAN For Feed",
+  "short_name": "KAYAN",
+  "description": "تطبيق ومنصة KAYAN For Feed لإدارة ومتابعة التغذية والأعلاف.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f3f5f6",
+  "theme_color": "#e0a526",
+  "categories": [
+    "business",
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
