@@ -343,14 +343,13 @@ body:not([data-tab=ops]):not([data-tab=dash]) .hero,body:not([data-tab=ops]):not
   <details class="xg"><summary style="cursor:pointer;font-weight:700">إعداد Supabase (مرة واحدة)</summary>
   <p class="sub">1) أنشئ مشروع مجاني على supabase.com. 2) من Authentication ← Providers ← Email ألغِ «Confirm email». 3) من SQL Editor شغّل الكود ده. 4) انسخ Project URL ومفتاح anon من Settings ← API.</p>
   <pre dir="ltr" style="white-space:pre-wrap;text-align:left;background:var(--bg);padding:10px;border-radius:8px;font-size:.8rem">create table kayan_sync(
-  user_id uuid not null default auth.uid() references auth.users on delete cascade,
-  id text not null default 'main',
+  id text primary key default 'main',
   data jsonb not null,
-  updated_at bigint not null,
-  primary key (user_id, id));
+  updated_at bigint not null);
 alter table kayan_sync enable row level security;
-create policy "own rows" on kayan_sync for all
-  using (auth.uid() = user_id) with check (auth.uid() = user_id);</pre></details>
+create policy "allowed users" on kayan_sync for all to authenticated
+  using ((auth.jwt()->>'email') in ('email1@gmail.com','email2@gmail.com'))
+  with check ((auth.jwt()->>'email') in ('email1@gmail.com','email2@gmail.com'));</pre></details>
 </div>
 <details class="card pane fold" data-p="set">
   <summary>أصناف المكرونة الهالك</summary>
@@ -1983,7 +1982,7 @@ async function login(sign){
 }
 g('sbl').onclick=()=>login(0);g('sbs').onclick=()=>login(1);g('sbn').onclick=()=>{if(!LF.m.sess)return say('سجّل الدخول الأول.');run(1)};
 g('sbo').onclick=async()=>{if(!LF.m.sess||!confirm('فصل المزامنة؟ بياناتك على الجهاز هتفضل زي ما هي.'))return;delete LF.m.sess;LF.m.base=null;await put('meta',LF.m);upd()};
-g('sbu').value=LF.m.url||'';g('sbk').value=LF.m.key||'';g('sbe').value=LF.m.email||'';
+g('sbu').value=LF.m.url||'https://knuooooqnrhymudiyiql.supabase.co';g('sbk').value=LF.m.key||'sb_publishable_qtxCWHrpk9yAVj0XmIOG9g_80ZvdWZQ';g('sbe').value=LF.m.email||'';
 addEventListener('online',()=>run());addEventListener('offline',upd);setInterval(()=>run(),60000);
 
 /* ---------- تشغيل التطبيق بعد تحميل البيانات ---------- */
