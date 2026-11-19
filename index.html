@@ -318,6 +318,12 @@ body:not([data-tab=ops]):not([data-tab=dash]) .hero,body:not([data-tab=ops]):not
   <p class="sub" id="lkm" role="status"></p>
 </div>
 <div class="card pane" data-p="set">
+  <h2>🔐 باسورد حذف العمليات</h2>
+  <p class="sub" style="margin-bottom:8px">لو سجّلت باسورد هنا، أي حذف لعملية هيطلب الباسورد قبل ما يتنفّذ. تقدر تغيّره أو تلغيه في أي وقت (بيطلب الباسورد الحالي). الباسورد بيتخزن مشفّر (مش بيتكتب كنص) مع بياناتك والنسخة الاحتياطية.</p>
+  <div class="bar" style="flex-wrap:wrap"><input id="dpo" type="password" dir="ltr" autocomplete="off" placeholder="الباسورد الحالي" aria-label="الباسورد الحالي" hidden><input id="dpn" type="password" dir="ltr" autocomplete="new-password" placeholder="باسورد جديد (٤ أحرف على الأقل)" aria-label="باسورد جديد"><input id="dpc" type="password" dir="ltr" autocomplete="new-password" placeholder="تأكيد الباسورد الجديد" aria-label="تأكيد الباسورد"><button class="btn" id="dps" type="button">حفظ الباسورد</button><button class="btn ghost" id="dpr" type="button" hidden>إلغاء الباسورد</button></div>
+  <p class="sub" id="dpm" role="status"></p>
+</div>
+<div class="card pane" data-p="set">
   <h2>📜 سجل التعديلات</h2>
   <p class="sub" style="margin-bottom:8px">كل إضافة وتعديل وحذف بيتسجل أوتوماتيك مع الوقت والمستخدم (الإيميل لو المزامنة مفعّلة) والقيم قبل وبعد التعديل. السجل بيتحفظ مع النسخة الاحتياطية.</p>
   <div class="bar"><select id="lgf" aria-label="القسم"></select><select id="lga" aria-label="الإجراء"></select><input id="lgs" type="search" placeholder="بحث بالاسم أو التفاصيل"><button class="btn ghost" id="lgx" type="button">تصدير CSV</button></div>
@@ -622,6 +628,22 @@ const tn=id=>(S.types.find(t=>t.id===id)||{name:'—'}).name;
 const sorted=()=>[...S.tx].sort((a,b)=>a.date.localeCompare(b.date)||a.id-b.id);
 $('d').value=today();
 const dateOK=d=>{if(S.lockDate&&d<=S.lockDate){alert('الفترة مقفولة لحد '+S.lockDate+' (شامل) — مينفعش تسجّل أو تعدّل بتاريخ '+d+'. فك القفل من الإعدادات لو محتاج.');return false}const k=(new Date(d)-new Date(today()))/864e5;return(k<=7&&k>=-400)||confirm('التاريخ '+d+' بعيد عن النهاردة — متأكد إنه صح؟')};
+/* ===== باسورد حذف العمليات (بيتعمل من الإعدادات) ===== */
+const _pwHash=async(p,salt,alg)=>{const s=salt+'|'+p;if(alg!=='h1'){try{if(window.crypto&&crypto.subtle){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return'h2:'+[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}}catch(e){}}
+  let h1=0xdeadbeef,h2=0x41c6ce57;for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677)}
+  h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);
+  return'h1:'+(4294967296*(2097151&h2)+(h1>>>0)).toString(16)};
+const pwCheck=async p=>{if(!S.delPw)return true;const a=String(S.delPw.h).slice(0,2);return await _pwHash(p,S.delPw.s,a)===S.delPw.h};
+function askPw(title){return new Promise(res=>{
+  const o=document.createElement('div');o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px';
+  o.innerHTML='<div role="dialog" aria-modal="true" style="background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:18px;max-width:340px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.35)"><h2 style="margin:0 0 6px">🔐 '+title+'</h2><p class="sub" style="margin:0 0 10px">اكتب الباسورد المسجّل في الإعدادات للمتابعة.</p><input type="password" dir="ltr" autocomplete="off" aria-label="الباسورد" style="width:100%"><p class="neg" role="alert" style="min-height:1.4em;margin:6px 0 0"></p><div class="bar" style="margin-top:8px"><button class="btn" type="button" data-k="ok">تأكيد</button><button class="btn ghost" type="button" data-k="no">إلغاء</button></div></div>';
+  const inp=o.querySelector('input'),er=o.querySelector('[role=alert]');let busy=0;
+  const done=v=>{o.remove();res(v)};
+  const go=async()=>{if(busy)return;busy=1;const ok=await pwCheck(inp.value);busy=0;if(ok)done(true);else{er.textContent='الباسورد غلط';inp.value='';inp.focus()}};
+  o.addEventListener('click',e=>{const k=e.target.dataset&&e.target.dataset.k;if(k==='ok')go();else if(k==='no'||e.target===o)done(false);e.stopPropagation()});
+  o.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();go()}else if(e.key==='Escape')done(false)});
+  document.body.appendChild(o);inp.focus()})}
+const needPw=title=>S.delPw?askPw(title):Promise.resolve(true);
 const PM={cash:'نقدي',insta:'انستاباي',vf:'فودافون كاش',bank:'حساب بنكي',credit:'آجل'};
 function syncPM(){const hl=S.hl||[],o=[['cash','نقدي'],['insta','انستاباي'+(hl.length?' — معايا':'')],...hl.map(n=>['insta@'+n,'انستاباي — '+n]),['vf','فودافون كاش'+(hl.length?' — معايا':'')],...hl.map(n=>['vf@'+n,'فودافون كاش — '+n]),['bank','حساب بنكي'+(hl.length?' — معايا':'')],...hl.map(n=>['bank@'+n,'حساب بنكي — '+n]),['credit','آجل']];
   Object.keys(PM).forEach(k=>delete PM[k]);o.forEach(([k,v])=>PM[k]=v)}
@@ -746,8 +768,9 @@ document.addEventListener('click',e=>{const d=e.target.dataset;if(!d)return;
   if(d.del){const t=S.tx.find(t=>String(t.id)===d.del);if(!t)return;const G=t.grp?S.tx.filter(x=>x.grp===t.grp):[t],ids=G.map(x=>x.id),n=ids.reduce((a,i)=>a+(calc().xd[i]||[]).length,0);
     if(S.lockDate&&G.some(x=>x.date<=S.lockDate))return alert('الفترة مقفولة لحد '+S.lockDate+' (شامل) — مينفعش تعدّل أو تحذف عملية بتاريخ داخل الفترة دي. فك القفل من الإعدادات لو محتاج.');
     if(confirm('حذف هذه العملية؟'+(G.length>1?' (هتتحذف كل أنواع الشحنة: '+G.length+')':'')+(n?' ('+n+' مصروف مرتبط هيفضلوا مسجلين كمصروفات غير مرتبطة)':''))){
+      needPw('باسورد حذف العملية').then(ok=>{if(!ok)return;
       const r=safe(()=>{S.tx=S.tx.filter(x=>!ids.includes(x.id));S.ex.forEach(x=>{if(ids.includes(x.trip))x.trip=0})});
-      if(r)alert(r);else{if(tedit&&tedit.ids.some(i=>ids.includes(i)))endEdit();save();render()}}}
+      if(r)alert(r);else{if(tedit&&tedit.ids.some(i=>ids.includes(i)))endEdit();save();render()}})}}
   else if(d.ted){startEdit(+d.ted)}
   else if(d.dt){const id=+d.dt;if(S.tx.some(t=>t.tid===id)||S.sr.some(x=>x.src===id||x.outs.some(o=>o.tid===id))||S.adj.some(a=>a.tid===id))alert('الصنف مستخدم في عمليات مسجلة، لا يمكن حذفه.');
     else if(S.types.length<2)alert('لازم يفضل صنف واحد على الأقل.');
@@ -1402,6 +1425,22 @@ $('lkb').onclick=()=>{const d=$('lkd').value;if(!d)return alert('اختار تا
   if(!confirm('هيتقفل كل حاجة بتاريخ لحد '+d+' (شامل): مفيش إضافة ولا تعديل ولا حذف. متابعة؟'))return;
   S.lockDate=d;alog('قفل','فترة','قفل كل الفترات لحد '+d);save();render()};
 $('lku').onclick=()=>{if(!S.lockDate||!confirm('فك القفل الحالي (لحد '+S.lockDate+')؟ هيتسجل في سجل التعديلات.'))return;const o=S.lockDate;delete S.lockDate;alog('فك القفل','فترة','فك قفل كان لحد '+o);save();render()};
+/* ---- إعدادات باسورد الحذف ---- */
+function renderDp(){const m=$('dpm');if(!m)return;const on=!!S.delPw;$('dpo').hidden=!on;$('dpr').hidden=!on;$('dps').textContent=on?'تغيير الباسورد':'حفظ الباسورد';
+  if(!$('dpm').dataset.keep)m.textContent=on?'🔐 الباسورد مفعّل: حذف العمليات بيطلبه.':'الباسورد مش مفعّل — حذف العمليات بيتم بتأكيد عادي.';}
+const dpMsg=(t,bad)=>{const m=$('dpm');m.textContent=t;m.className=bad?'neg':'sub';m.dataset.keep=bad?'1':'';if(!bad)setTimeout(()=>{m.dataset.keep='';renderDp()},3500)};
+$('dps').onclick=async()=>{const n=$('dpn').value,c=$('dpc').value;
+  if(S.delPw&&!await pwCheck($('dpo').value))return dpMsg('الباسورد الحالي غلط.',1);
+  if(n.length<4)return dpMsg('الباسورد الجديد لازم يكون ٤ أحرف على الأقل.',1);
+  if(n!==c)return dpMsg('الباسورد الجديد وتأكيده مش متطابقين.',1);
+  const had=!!S.delPw,salt=Math.random().toString(36).slice(2)+Date.now().toString(36);
+  S.delPw={s:salt,h:await _pwHash(n,salt)};alog('تعديل','إعدادات',had?'تغيير باسورد حذف العمليات':'تفعيل باسورد حذف العمليات');save();
+  ['dpo','dpn','dpc'].forEach(i=>$(i).value='');dpMsg('✅ اتحفظ الباسورد.');renderDp()};
+$('dpr').onclick=async()=>{if(!S.delPw)return;if(!await pwCheck($('dpo').value))return dpMsg('اكتب الباسورد الحالي الأول عشان تلغيه.',1);
+  if(!confirm('إلغاء باسورد الحذف؟ بعدها حذف العمليات هيتم من غير باسورد.'))return;
+  delete S.delPw;alog('تعديل','إعدادات','إلغاء باسورد حذف العمليات');save();['dpo','dpn','dpc'].forEach(i=>$(i).value='');dpMsg('تم إلغاء الباسورد.');renderDp()};
+{const _Rdp=render;render=function(){_Rdp.apply(this,arguments);try{renderDp()}catch(e){console.warn(e)}}}
+try{renderDp()}catch(e){}
 
 /* ---- نموذج العميل/المصنع ---- */
 function cobL(){const f=$('ck').value==='factory';$('cobl').textContent=f?'رصيد افتتاحي — علينا له (ج.م)':'رصيد افتتاحي — عليه لينا (ج.م)';$('clm').parentNode.hidden=f}
