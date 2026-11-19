@@ -359,9 +359,9 @@ body:not([data-tab=ops]):not([data-tab=dash]) .hero,body:not([data-tab=ops]):not
   data jsonb not null,
   updated_at bigint not null);
 alter table kayan_sync enable row level security;
-create policy "allowed users" on kayan_sync for all to authenticated
-  using ((auth.jwt()->>'email') in ('email1@gmail.com','email2@gmail.com'))
-  with check ((auth.jwt()->>'email') in ('email1@gmail.com','email2@gmail.com'));</pre></details>
+create policy "own row" on kayan_sync for all to authenticated
+  using (id = auth.uid()::text and (auth.jwt()->>'email') in ('mohamedelkffas97@gmail.com','ahmedelkaffas555@gmail.com','mohamedkhamis141989@gmail.com'))
+  with check (id = auth.uid()::text and (auth.jwt()->>'email') in ('mohamedelkffas97@gmail.com','ahmedelkaffas555@gmail.com','mohamedkhamis141989@gmail.com'));</pre></details>
 </div>
 <details class="card pane fold" data-p="set">
   <summary>أصناف المكرونة الهالك</summary>
@@ -2107,6 +2107,8 @@ const say=t=>{if(st)st.textContent=t};
 
 /* ---------- Supabase (REST بدون مكتبات) ---------- */
 const U=()=>LF.m.url.replace(/\/+$/,'');
+/* كل حساب ليه صف خاص بيه (id = معرّف المستخدم) بدل صف 'main' المشترك */
+const UID=()=>{try{const u=JSON.parse(atob(LF.m.sess.a.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).sub;if(u)return u}catch(e){}throw new Error('الجلسة مش صالحة — اضغط «دخول وتفعيل» تاني')};
 async function tok(path,body){const r=await fetch(U()+'/auth/v1/'+path,{method:'POST',headers:{apikey:LF.m.key,'Content-Type':'application/json'},body:JSON.stringify(body)});
   const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error_description||j.msg||j.message||('HTTP '+r.status));return j}
 const setSess=async j=>{LF.m.sess={a:j.access_token,r:j.refresh_token,exp:Date.now()+(j.expires_in||3600)*1e3};await put('meta',LF.m)};
@@ -2117,9 +2119,9 @@ async function api(p,o={}){const m=LF.m;
 const has=o=>!!(o&&((o.tx&&o.tx.length)||(o.cap&&o.cap.length)));
 
 async function push(base){
-  const m=LF.m,ts=Date.now(),r0=LF._rev,body=JSON.stringify(base==null?{id:'main',data:S,updated_at:ts}:{data:S,updated_at:ts});
+  const m=LF.m,ts=Date.now(),r0=LF._rev,body=JSON.stringify(base==null?{id:UID(),data:S,updated_at:ts}:{data:S,updated_at:ts});
   const out=base==null?await api('kayan_sync',{method:'POST',headers:{Prefer:'return=representation'},body})
-    :await api('kayan_sync?id=eq.main&updated_at=eq.'+base,{method:'PATCH',headers:{Prefer:'return=representation'},body});
+    :await api('kayan_sync?id=eq.'+UID()+'&updated_at=eq.'+base,{method:'PATCH',headers:{Prefer:'return=representation'},body});
   if(!out||!out.length)throw new Error('السحابة اتغيّرت أثناء الرفع — هنعيد المحاولة');
   m.base=ts;if(LF._rev===r0)m.dirty=false;await put('meta',m);
 }
@@ -2142,7 +2144,7 @@ async function run(manual){
   if(!navigator.onLine){upd();return}
   busy=1;err='';upd();
   try{
-    const rows=await api('kayan_sync?id=eq.main&select=data,updated_at'),rem=rows&&rows[0];
+    const rows=await api('kayan_sync?id=eq.'+UID()+'&select=data,updated_at'),rem=rows&&rows[0];
     if(!rem){if(has(S))await push(null)}
     else if(m.base===rem.updated_at){if(m.dirty)await push(rem.updated_at)}
     else if(!has(S)||(m.base!=null&&!m.dirty))await take(rem);
