@@ -359,15 +359,42 @@ body:not([data-tab=ops]):not([data-tab=dash]) .hero,body:not([data-tab=ops]):not
   <div class="bar" style="margin-top:10px"><button class="btn" id="sbl" type="button">دخول وتفعيل</button><button class="btn ghost" id="sbs" type="button">إنشاء حساب</button><button class="btn ghost" id="sbn" type="button">مزامنة الآن</button><button class="btn ghost" id="sbo" type="button">فصل</button></div>
   <p class="sub" id="lfst" role="status"></p>
   <details class="xg"><summary style="cursor:pointer;font-weight:700">إعداد Supabase (مرة واحدة)</summary>
-  <p class="sub">1) أنشئ مشروع مجاني على supabase.com. 2) من Authentication ← Providers ← Email ألغِ «Confirm email». 3) من SQL Editor شغّل الكود ده. 4) انسخ Project URL ومفتاح anon من Settings ← API.</p>
-  <pre dir="ltr" style="white-space:pre-wrap;text-align:left;background:var(--bg);padding:10px;border-radius:8px;font-size:.8rem">create table kayan_sync(
+  <p class="sub">1) <b>صاحب المنشأة</b> ينشئ مشروع مجاني على supabase.com بحسابه هو (عشان البيانات تبقى عنده وحده — مش عند اللي ركّب المنصة). 2) من Authentication ← Providers ← Email ألغِ «Confirm email». 3) من SQL Editor شغّل الكود ده (غيّر الإيميل في آخره لإيميلك). بعد كده بتضيف باقي المستخدمين من كارت «👥 المستخدمين» تحت. 4) انسخ Project URL ومفتاح anon من Settings ← API.</p>
+  <pre dir="ltr" style="white-space:pre-wrap;text-align:left;background:var(--bg);padding:10px;border-radius:8px;font-size:.8rem">create table if not exists kayan_sync(
   id text primary key default 'main',
   data jsonb not null,
   updated_at bigint not null);
+create table if not exists kayan_members(email text primary key);
 alter table kayan_sync enable row level security;
-create policy "own row" on kayan_sync for all to authenticated
-  using (id = auth.uid()::text and (auth.jwt()->>'email') in ('mohamedelkffas97@gmail.com','ahmedelkaffas555@gmail.com','mohamedkhamis141989@gmail.com'))
-  with check (id = auth.uid()::text and (auth.jwt()->>'email') in ('mohamedelkffas97@gmail.com','ahmedelkaffas555@gmail.com','mohamedkhamis141989@gmail.com'));</pre></details>
+alter table kayan_members enable row level security;
+
+create or replace function kayan_is_member() returns boolean
+  language sql security definer stable set search_path = public as
+  $$ select exists(select 1 from kayan_members where email = lower(auth.jwt()->>'email')) $$;
+revoke all on function kayan_is_member() from public;
+grant execute on function kayan_is_member() to authenticated;
+
+drop policy if exists "own row" on kayan_sync;
+drop policy if exists "shared row" on kayan_sync;
+drop policy if exists "members" on kayan_members;
+create policy "shared row" on kayan_sync for all to authenticated
+  using (id = 'main' and kayan_is_member())
+  with check (id = 'main' and kayan_is_member());
+create policy "members" on kayan_members for all to authenticated
+  using (kayan_is_member()) with check (kayan_is_member());
+
+-- أول مستخدم (صاحب المنشأة): غيّر الإيميل ده لإيميلك (بحروف صغيرة). الباقي يتضافوا من جوا المنصة.
+insert into kayan_members(email) values ('your-email@gmail.com') on conflict do nothing;
+
+-- لو عندك بيانات قديمة اتعملها مزامنة قبل كده، انقلها للصف المشترك (مرة واحدة):
+update kayan_sync set id = 'main'
+  where id = (select id from kayan_sync where id <> 'main' order by updated_at desc limit 1)
+  and not exists (select 1 from kayan_sync where id = 'main');</pre></details>
+  <h2 style="margin-top:18px">👥 المستخدمين المسموح لهم</h2>
+  <p class="sub" style="margin-bottom:8px">أي مستخدم مسجّل هنا يشوف نفس البيانات ويعدّل عليها. اكتب إيميله وكلمة سر هو هيدخل بيها (٦ حروف على الأقل) وادوس «إضافة» — الحساب بيتعمل أوتوماتيك. لازم تكون داخل بحسابك أنت الأول.</p>
+  <div class="bar" style="flex-wrap:wrap"><input id="mbe" type="email" dir="ltr" autocomplete="off" placeholder="إيميل المستخدم الجديد" aria-label="إيميل المستخدم الجديد"><input id="mbp" type="text" dir="ltr" autocomplete="off" placeholder="كلمة سر له" aria-label="كلمة سر المستخدم الجديد"><button class="btn" id="mba" type="button">إضافة</button><button class="btn ghost" id="mbr" type="button">تحديث القائمة</button></div>
+  <div class="chips" id="mbl"></div>
+  <p class="sub" id="mbm" role="status"></p>
 </div>
 <details class="card pane fold" data-p="set">
   <summary>أصناف المكرونة الهالك</summary>
@@ -2147,7 +2174,7 @@ const say=t=>{if(st)st.textContent=t};
 /* ---------- Supabase (REST بدون مكتبات) ---------- */
 const U=()=>LF.m.url.replace(/\/+$/,'');
 /* كل حساب ليه صف خاص بيه (id = معرّف المستخدم) بدل صف 'main' المشترك */
-const UID=()=>{try{const u=JSON.parse(atob(LF.m.sess.a.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).sub;if(u)return u}catch(e){}throw new Error('الجلسة مش صالحة — اضغط «دخول وتفعيل» تاني')};
+const UID=()=>{try{const u=JSON.parse(atob(LF.m.sess.a.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).sub;if(u)return'main'}catch(e){}throw new Error('الجلسة مش صالحة — اضغط «دخول وتفعيل» تاني')};
 async function tok(path,body){const r=await fetch(U()+'/auth/v1/'+path,{method:'POST',headers:{apikey:LF.m.key,'Content-Type':'application/json'},body:JSON.stringify(body)});
   const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error_description||j.msg||j.message||('HTTP '+r.status));return j}
 const setSess=async j=>{LF.m.sess={a:j.access_token,r:j.refresh_token,exp:Date.now()+(j.expires_in||3600)*1e3};await put('meta',LF.m)};
@@ -2199,11 +2226,32 @@ async function login(sign){
   try{
     const j=await tok(sign?'signup':'token?grant_type=password',{email:em,password:pw});
     if(!j.access_token)return say('اتبعتلك إيميل تأكيد — أكّده وبعدها اضغط «دخول وتفعيل». (أو ألغِ Confirm email من إعدادات Supabase)');
-    m.email=em;m.base=null;await setSess(j);g('sbp').value='';err='';upd();run(1);
+    m.email=em;m.base=null;await setSess(j);g('sbp').value='';err='';upd();run(1);loadMembers();
   }catch(e){say('❌ '+(e.message||e))}
 }
 g('sbl').onclick=()=>login(0);g('sbs').onclick=()=>login(1);g('sbn').onclick=()=>{if(!LF.m.sess)return say('سجّل الدخول الأول.');run(1)};
 g('sbo').onclick=async()=>{if(!LF.m.sess||!confirm('فصل المزامنة؟ بياناتك على الجهاز هتفضل زي ما هي.'))return;delete LF.m.sess;LF.m.base=null;await put('meta',LF.m);upd()};
+/* ---- المستخدمين المسموح لهم ---- */
+const mm=(t,bad)=>{const e=g('mbm');e.textContent=t;e.className=bad?'neg':'sub'};
+async function loadMembers(){const box=g('mbl');if(!box)return;if(!LF.m.sess){box.textContent='';return mm('سجّل الدخول الأول.')}
+  try{const r=await api('kayan_members?select=email&order=email');box.innerHTML='';
+    (r||[]).forEach(x=>{const me=(LF.m.email||'').toLowerCase()===x.email,c=document.createElement('span');c.className='chip';c.textContent=x.email+(me?' (أنت)':'')+' ';
+      if(!me){const b=document.createElement('button');b.type='button';b.className='x';b.textContent='✕';b.setAttribute('aria-label','منع '+x.email);b.onclick=()=>rmMember(x.email);c.appendChild(b)}
+      box.appendChild(c)});mm('')}
+  catch(e){mm('تعذر تحميل المستخدمين: '+String(e.message||e).slice(0,110)+' — اتأكد إنك شغّلت كود SQL الجديد.',1)}}
+async function rmMember(em){if(!confirm('منع '+em+' من الدخول للبيانات؟ (حسابه هيفضل موجود بس مش هيشوف حاجة)'))return;
+  try{await api('kayan_members?email=eq.'+encodeURIComponent(em),{method:'DELETE'});loadMembers()}catch(e){mm('❌ '+(e.message||e),1)}}
+g('mba').onclick=async()=>{const em=g('mbe').value.trim().toLowerCase(),pw=g('mbp').value;
+  if(!LF.m.sess)return mm('سجّل الدخول الأول.',1);
+  if(!/^\S+@\S+\.\S+$/.test(em)||pw.length<6)return mm('اكتب إيميل صحيح وكلمة سر ٦ حروف على الأقل.',1);
+  mm('جاري الإضافة…');
+  try{let note='';
+    try{await tok('signup',{email:em,password:pw})}catch(e){if(/already|registered|exists/i.test(e.message))note=' (الإيميل ده كان له حساب قبل كده — كلمة سره القديمة هي اللي شغالة)';else throw e}
+    await api('kayan_members',{method:'POST',headers:{Prefer:'resolution=ignore-duplicates'},body:JSON.stringify({email:em})});
+    g('mbe').value='';g('mbp').value='';await loadMembers();mm('✅ اتضاف '+em+note)}
+  catch(e){mm('❌ '+(e.message||e),1)}};
+g('mbr').onclick=loadMembers;
+if(LF.m&&LF.m.sess)setTimeout(loadMembers,2500);
 g('sbu').value=LF.m.url||'https://knuooooqnrhymudiyiql.supabase.co';g('sbk').value=LF.m.key||'sb_publishable_qtxCWHrpk9yAVj0XmIOG9g_80ZvdWZQ';g('sbe').value=LF.m.email||'';
 addEventListener('online',()=>run());addEventListener('offline',upd);setInterval(()=>run(),60000);
 
