@@ -352,7 +352,7 @@ body:not([data-tab=ops]):not([data-tab=dash]) .hero,body:not([data-tab=ops]):not
   <p class="sub" style="margin-bottom:8px">البيانات بتتخزّن أساسًا على الجهاز (IndexedDB) وبتشتغل من غير نت. أول ما يبقى فيه نت بتتنسخ للسحابة تلقائيًا، وتفتحها من أي جهاز بنفس الإيميل.</p>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">
     <div><label for="sbu">رابط المشروع (Project URL)</label><input id="sbu" type="url" dir="ltr" placeholder="https://xxxx.supabase.co"></div>
-    <div><label for="sbk">مفتاح anon public</label><input id="sbk" dir="ltr" autocomplete="off"></div>
+    <div><label for="sbk">مفتاح anon public</label><input id="sbk" dir="ltr" autocomplete="off" placeholder="sb_publishable_... أو eyJ..."></div>
     <div><label for="sbe">الإيميل</label><input id="sbe" type="email" dir="ltr" autocomplete="username"></div>
     <div><label for="sbp">كلمة السر</label><input id="sbp" type="password" dir="ltr" autocomplete="current-password"></div>
   </div>
@@ -360,7 +360,8 @@ body:not([data-tab=ops]):not([data-tab=dash]) .hero,body:not([data-tab=ops]):not
   <p class="sub" id="lfst" role="status"></p>
   <details class="xg"><summary style="cursor:pointer;font-weight:700">إعداد Supabase (مرة واحدة)</summary>
   <p class="sub">1) <b>صاحب المنشأة</b> ينشئ مشروع مجاني على supabase.com بحسابه هو (عشان البيانات تبقى عنده وحده — مش عند اللي ركّب المنصة). 2) من Authentication ← Providers ← Email ألغِ «Confirm email». 3) من SQL Editor شغّل الكود ده (غيّر الإيميل في آخره لإيميلك). بعد كده بتضيف باقي المستخدمين من كارت «👥 المستخدمين» تحت. 4) انسخ Project URL ومفتاح anon من Settings ← API.</p>
-  <pre dir="ltr" style="white-space:pre-wrap;text-align:left;background:var(--bg);padding:10px;border-radius:8px;font-size:.8rem">create table if not exists kayan_sync(
+  <p class="sub"><b>⚠️ شغّل الـ SQL ده الأول، قبل «تسجيل جديد».</b> اكتب الإيميل في خانة «الإيميل» فوق وبعدين اضغط الزر.</p><div class="bar"><button class="btn" id="sqlcp" type="button">📋 نسخ كود SQL بإيميلي</button><span class="sub" id="sqlm"></span></div>
+  <pre id="sqlpre" dir="ltr" style="white-space:pre-wrap;text-align:left;background:var(--bg);padding:10px;border-radius:8px;font-size:.8rem">create table if not exists kayan_sync(
   id text primary key default 'main',
   data jsonb not null,
   updated_at bigint not null);
@@ -2181,7 +2182,7 @@ const setSess=async j=>{LF.m.sess={a:j.access_token,r:j.refresh_token,exp:Date.n
 async function api(p,o={}){const m=LF.m;
   if(m.sess.exp<Date.now()+6e4)await setSess(await tok('token?grant_type=refresh_token',{refresh_token:m.sess.r}));
   const r=await fetch(U()+'/rest/v1/'+p,{...o,headers:{apikey:m.key,Authorization:'Bearer '+m.sess.a,'Content-Type':'application/json',...(o.headers||{})}});
-  const t=await r.text();if(!r.ok)throw new Error('HTTP '+r.status+' '+t.slice(0,140));return t?JSON.parse(t):null}
+  const t=await r.text();if(!r.ok){if(r.status===403||/42501|row-level security/i.test(t))throw new Error('🔒 إيميلك مش مضاف في kayan_members — شغّل كود SQL بإيميلك من «إعداد Supabase» (HTTP 403)');throw new Error('HTTP '+r.status+' '+t.slice(0,140))}return t?JSON.parse(t):null}
 const has=o=>!!(o&&((o.tx&&o.tx.length)||(o.cap&&o.cap.length)));
 
 async function push(base){
@@ -2251,8 +2252,14 @@ g('mba').onclick=async()=>{const em=g('mbe').value.trim().toLowerCase(),pw=g('mb
     g('mbe').value='';g('mbp').value='';await loadMembers();mm('✅ اتضاف '+em+note)}
   catch(e){mm('❌ '+(e.message||e),1)}};
 g('mbr').onclick=loadMembers;
+g('sqlcp').onclick=async()=>{const em=g('sbe').value.trim().toLowerCase(),m=g('sqlm');
+  if(!/^\S+@\S+\.\S+$/.test(em)){m.textContent='اكتب إيميلك في خانة «الإيميل» الأول.';return}
+  const sql=g('sqlpre').textContent.split('your-email@gmail.com').join(em);
+  try{await navigator.clipboard.writeText(sql);m.textContent='✅ اتنسخ — الصقه في SQL Editor واضغط Run'}
+  catch(e){const ta=document.createElement('textarea');ta.value=sql;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');m.textContent='✅ اتنسخ — الصقه في SQL Editor واضغط Run'}catch(x){m.textContent='❌ تعذّر النسخ — انسخ الكود يدويًا'}ta.remove()}};
 if(LF.m&&LF.m.sess)setTimeout(loadMembers,2500);
-g('sbu').value=LF.m.url||'https://knuooooqnrhymudiyiql.supabase.co';g('sbk').value=LF.m.key||'sb_publishable_qtxCWHrpk9yAVj0XmIOG9g_80ZvdWZQ';g('sbe').value=LF.m.email||'';
+if(LF.m&&/knuooooqnrhymudiyiql/.test(LF.m.url||'')){['url','key','sess','email','base','dirty'].forEach(k=>delete LF.m[k]);put('meta',LF.m)}
+g('sbu').value=LF.m.url||'';g('sbk').value=LF.m.key||'';g('sbe').value=LF.m.email||'';
 addEventListener('online',()=>run());addEventListener('offline',upd);setInterval(()=>run(),60000);
 
 /* ---------- تشغيل التطبيق بعد تحميل البيانات ---------- */
