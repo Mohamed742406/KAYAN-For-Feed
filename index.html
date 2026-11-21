@@ -1754,14 +1754,14 @@ AN();PTR();
 (function(){
   const f=$('f'),P=id=>$(id).parentNode,G=(t,els)=>{const d=document.createElement('div');d.className='fgrp';d.innerHTML='<div class="fh">'+t+'</div>';els.forEach(e=>d.appendChild(e));return d};
   const old=$('tkt').parentNode.parentNode,grps=[...f.querySelectorAll('.fgrp')],gB=grps.find(g=>g.querySelector('#tr')),gC=grps.find(g=>g.querySelector('#pd')),gD=grps.find(g=>g.querySelector('#n'));
-  const gX=G('الخصم والاستحقاق',[P('dc'),P('dud')]),gS=G('بيانات الشحنة (اختياري)',[P('tkt'),P('drv'),P('wf')]);old.remove();
-  gC.querySelector('.fh').textContent='الدفع';
+  const gX=G('الاستحقاق',[P('dud')]),gS=G('بيانات الشحنة (اختياري)',[P('tkt'),P('drv'),P('wf')]);old.remove();
+  gC.querySelector('.fh').textContent='الدفع';gC.querySelector('#pd').parentNode.after(P('dc'));
   const det=document.createElement('details'),sm=document.createElement('summary');det.className='more';det.id='moreD';sm.id='moreS';det.append(sm,gB,gS,gX,gD);f.querySelector('.fbar').before(det);
-  const has=()=>+$('tr').value>0||+$('dc').value>0||$('tkt').value||$('drv').value||+$('wf').value>0||$('dud').value||$('n').value.trim()||$('trn').value.trim();
-  window.moreDot=()=>{sm.textContent='خيارات إضافية — مصروفات الرحلة، الشحنة، الخصم، الاستحقاق، ملاحظات'+(has()?' ●':'')};
+  const has=()=>+$('tr').value>0||$('tkt').value||$('drv').value||+$('wf').value>0||$('dud').value||$('n').value.trim()||$('trn').value.trim();
+  window.moreDot=()=>{sm.textContent='خيارات إضافية — مصروفات الرحلة، الشحنة، الاستحقاق، ملاحظات'+(has()?' ●':'')};
   window.moreAuto=()=>{moreDot();if(has())det.open=true};
   f.addEventListener('input',moreDot);f.addEventListener('change',moreDot);
-  new MutationObserver(()=>{if(/الخصم|المصروفات|استحقاق|الشحنة|الوزن/.test($('err').textContent))det.open=true}).observe($('err'),{childList:true,characterData:true,subtree:true});
+  new MutationObserver(()=>{if(/المصروفات|استحقاق|الشحنة|الوزن/.test($('err').textContent))det.open=true}).observe($('err'),{childList:true,characterData:true,subtree:true});
   const _SE=startEdit;startEdit=function(){_SE.apply(this,arguments);moreAuto()};
   moreDot();
   // التنقل على الموبايل
