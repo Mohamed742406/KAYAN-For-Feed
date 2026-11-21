@@ -70,6 +70,7 @@ th{color:var(--mute);font-weight:500}
 .pane{display:none}.pane.show{display:block}
 .lrow{display:grid;grid-template-columns:1.1fr 1.2fr 1.2fr .8fr .8fr auto;gap:6px;margin-bottom:6px}
 @media (max-width:560px){.lrow{grid-template-columns:1fr 1fr}.lrow .lt{grid-column:1/-1}}
+#lr.buy .lg,#lr.buy .lc{display:none}#lr.buy .lrow{grid-template-columns:2fr 1fr 1fr auto}@media (max-width:560px){#lr.buy .lrow{grid-template-columns:1fr 1fr}}
 .xg{border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:10px}
 .orow{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:6px;margin-bottom:6px}
 @media (max-width:560px){.orow{grid-template-columns:1fr 1fr}}
@@ -259,7 +260,7 @@ body:not([data-tab=ops]):not([data-tab=dash]) .hero,body:not([data-tab=ops]):not
     <div id="tyw"><label for="ty" id="tylbl">صنف المكرونة</label><select id="ty" required></select></div>
     <div id="gq"><label for="q">الكمية (طن)</label><input id="q" type="number" step="0.001" min="0.001" required></div>
     <div id="gp"><label for="pr">سعر الطن (ج.م)</label><input id="pr" type="number" step="0.01" min="0" required></div>
-    <div id="lines" hidden style="grid-column:1/-1"><label>تفاصيل البيع: لكل سطر اختار المخزن اللي بيتسحب منه، واكتب النوع وكميته وسعره وطريقة بيعه</label><div id="lr"></div><button type="button" class="btn ghost" id="la">+ نوع آخر</button><datalist id="gl"></datalist><datalist id="cl"></datalist></div>
+    <div id="lines" hidden style="grid-column:1/-1"><label id="lnl">تفاصيل العملية</label><div id="lr"></div><button type="button" class="btn ghost" id="la">+ نوع آخر</button><datalist id="gl"></datalist><datalist id="cl"></datalist></div>
     <div style="grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;align-items:start"><div><label for="tr">المصروفات (ج.م) — اكتب الإجمالي كله</label><input id="tr" type="number" step="0.01" min="0" value="0"></div><div><label for="trm">دُفعت المصروفات من</label><select id="trm"><option value="cash">نقدي</option><option value="insta">انستاباي</option><option value="vf">فودافون كاش</option><option value="bank">حساب بنكي</option></select></div><div><label for="trn">ملاحظات المصروفات — كانت إيه؟</label><textarea id="trn" rows="2" style="resize:vertical" placeholder="مثلًا: تحميل 200 + إكرامية 100 + مواصلات 300"></textarea></div></div>
     <div style="grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;align-items:start"><div><label for="tkt">رقم التذكرة / الإيصال (اختياري)</label><input id="tkt" maxlength="40"></div><div><label for="drv">السواق / رقم العربية (اختياري)</label><input id="drv" maxlength="60"></div><div><label for="wf">الوزن المسجل عند الطرف التاني (طن) — اختياري</label><input id="wf" type="number" step="0.001" min="0"></div></div>
     <div><label for="dc">الخصم (ج.م) — بيتخصم من إجمالي العملية</label><input id="dc" type="number" step="0.01" min="0" value="0"></div>
@@ -776,16 +777,11 @@ function render(){
 document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{kind=b.dataset.t;
   document.querySelectorAll('.seg button').forEach(x=>x.classList.toggle('on',x===b));
   $('plbl').textContent=kind==='buy'?'اسم المصنع':'اسم العميل';$('err').textContent=''});
-const upd=()=>{if(kind==='sell')return lupd();const q=+$('q').value||0,pr=+$('pr').value||0,g=q*pr,dc=+$('dc').value||0,v=g-dc,tr=+$('tr').value||0,tot=v+tr,ct=q>0?tot/q:0;
+const upd=()=>{return lupd();const q=+$('q').value||0,pr=+$('pr').value||0,g=q*pr,dc=+$('dc').value||0,v=g-dc,tr=+$('tr').value||0,tot=v+tr,ct=q>0?tot/q:0;
   $('tot').innerHTML=(q&&pr?`<b>هيتسجل شراء:</b> ${fmt(q,3)} طن × ${M(pr)} = ${M(g)}`+(dc?` − خصم ${M(dc)} = ${M(v)}`:'')+(tr?`<br>+ مصروفات الشراء ${M(tr)} ← بتزوّد تكلفة المخزون`:'')+`<br><b>تكلفة الطن داخل المخزون: ${M(ct)}</b> — إجمالي الشحنة ${M(tot)}`:'اكتب الكمية والسعر عشان يظهر الحساب')};
 ['q','pr','tr','p','d','dc'].forEach(i=>$(i).oninput=upd);upd();
 
-$('f').onsubmit=e=>{e.preventDefault();if(kind==='sell')return sellSubmit();
-  if(!dateOK($('d').value)||(!(+$('pr').value)&&!confirm('سعر الطن صفر — متأكد؟')))return;
-  const qty=+$('q').value,price=+$('pr').value,tid=+$('ty').value,tr=+$('tr').value||0,disc=+$('dc').value||0;if(disc<0||disc>qty*price)return $('err').textContent='الخصم لازم يكون بين صفر وإجمالي العملية ('+M(qty*price)+').';const v=qty*price-disc,pd=pdv(v),party=$('p').value.trim(),date=$('d').value,old=tedit?S.tx.find(t=>t.id===tedit.rep):null,nid=old?old.id:uid();
-  const r=safe(()=>{if(old)S.tx=S.tx.filter(t=>t.id!==old.id);S.tx.push({id:nid,no:old?old.no:++S.seq,kind,date,party,tid,qty,price,disc,tr,trn:$('trn').value.trim(),paid:pd,pm:$('pm').value,trpm:$('trm').value,note:$('n').value.trim(),due:dueOf(party,date,v-pd),tk:$('tkt').value.trim(),dv:$('drv').value.trim(),wf:+$('wf').value||0})});
-  if(r){$('err').textContent=r;return}
-  autoCt(party,'factory');save();$('err').textContent='';endEdit();['q','pr','pd','n','trn','dud','tkt','drv','wf'].forEach(i=>$(i).value='');$('tr').value=0;$('dc').value=0;upd();render()};
+$('f').onsubmit=e=>{e.preventDefault();return kind==='sell'?sellSubmit():buySubmit()};
 
 $('tf').onsubmit=e=>{e.preventDefault();const n=$('tn').value.trim();if(!n)return;
   S.types.push({id:uid(),name:n});$('tn').value='';save();render()};
@@ -982,16 +978,25 @@ document.addEventListener('click',e=>{const d=e.target.dataset||{};
 const GR=['نمرة 1','نمرة 2','مكسر','مطحون','مخلوط'],CH=['أكل','مزارع سمك','علف مواشي','علف دواجن'];
 function tOpts(){return S.types.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('')}
 function lrow(){const pv=$('lr').lastElementChild&&$('lr').lastElementChild.querySelector('.lt'),pval=pv?pv.value:'',d=document.createElement('div');d.className='lrow';
-  d.innerHTML='<select class="lt" aria-label="السحب من مخزون">'+tOpts()+'</select><input class="lg" list="gl" placeholder="النوع (نمرة 1، مكسر...)" aria-label="نوع المكرونة"><input class="lc" list="cl" placeholder="طريقة البيع (أكل، مزارع سمك...)" aria-label="طريقة البيع"><input class="lq" type="number" step="0.001" min="0" placeholder="الكمية (طن)" aria-label="الكمية"><input class="lp" type="number" step="0.01" min="0" placeholder="سعر الطن" aria-label="سعر الطن"><button type="button" class="x" aria-label="حذف النوع">✕</button>';
+  d.innerHTML='<select class="lt" aria-label="'+($('lr').classList.contains('buy')?'الصنف':'السحب من مخزون')+'">'+tOpts()+'</select><input class="lg" list="gl" placeholder="النوع (نمرة 1، مكسر...)" aria-label="نوع المكرونة"><input class="lc" list="cl" placeholder="طريقة البيع (أكل، مزارع سمك...)" aria-label="طريقة البيع"><input class="lq" type="number" step="0.001" min="0" placeholder="الكمية (طن)" aria-label="الكمية"><input class="lp" type="number" step="0.01" min="0" placeholder="سعر الطن" aria-label="سعر الطن"><button type="button" class="x" aria-label="حذف النوع">✕</button>';
   $('lr').appendChild(d);if(pval&&S.types.some(t=>String(t.id)===pval))d.querySelector('.lt').value=pval}
 function lrows(){return[...document.querySelectorAll('#lr .lrow')].map(r=>({tid:+r.querySelector('.lt').value,grade:r.querySelector('.lg').value.trim(),ch:r.querySelector('.lc').value.trim(),qty:+r.querySelector('.lq').value||0,price:+r.querySelector('.lp').value||0})).filter(l=>l.qty>0)}
 function lupd(){const L=lrows(),q=L.reduce((a,l)=>a+l.qty,0),g=L.reduce((a,l)=>a+l.qty*l.price,0),dc=+$('dc').value||0,v=g-dc,tr=+$('tr').value||0,st=calc().st,need={};
+  if(kind==='buy'){if(!q){$('tot').innerHTML='اكتب صنف وكميته وسعره عشان يظهر الحساب';return}
+    const ds=splitAmt(Math.min(dc,g),L.map(l=>l.qty*l.price)),ts=splitAmt(tr,L.map(l=>l.qty));
+    $('tot').innerHTML=`<b>هيتسجل شراء:</b> ${fmt(q,3)} طن — القيمة ${M(g)}`+(dc?` − خصم ${M(dc)} = ${M(v)}`:'')+(tr?`<br>+ مصروفات الشراء ${M(tr)} ← بتتوزّع على الأصناف بنسبة الوزن وبتزوّد تكلفة المخزون`:'')+'<br>'+L.map((l,i)=>`${esc(tn(l.tid))}: ${fmt(l.qty,3)} طن — <b>تكلفة الطن داخل المخزون: ${M(l.qty?(l.qty*l.price-ds[i]+ts[i])/l.qty:0)}</b>`).join('<br>')+`<br>إجمالي الشحنة ${M(v+tr)}`;return}
   L.forEach(l=>{need[l.tid]=(need[l.tid]||0)+l.qty});
   const ids=Object.keys(need),av=id=>(st[id]||{q:0}).q,over=ids.filter(id=>need[id]>av(id)+1e-9);
   if(!q){$('tot').innerHTML='اكتب نوع الكمية وسعرها عشان يظهر الحساب';return}
   $('tot').innerHTML=`<b>هيتسجل بيع:</b> ${fmt(q,3)} طن — `+ids.map(id=>`${esc(tn(+id))}: ${fmt(need[id],3)} من المتاح ${fmt(av(id),3)} طن`).join(' | ')+(over.length?` <span class="neg">— الكمية أكبر من المتاح في: ${over.map(id=>esc(tn(+id))).join('، ')}!</span>`:'')+` — القيمة ${M(g)}`+(dc?` − خصم ${M(dc)} = ${M(v)}`:'')+(tr?`<br>− مصروفات البيع ${M(tr)} ← بتتخصم من ربح البيع`:'')+`<br><b>صافي العملية: ${M(v-tr)}</b> — الربح الفعلي بيتحسب بتكلفة الطن من المخزون`+crdHint(v)}
-function applyKind(){const s=kind==='sell';$('tyw').hidden=s;$('ty').required=!s;$('gq').hidden=$('gp').hidden=s;$('q').required=$('pr').required=!s;$('lines').hidden=!s;
+function applyKind(){const s=kind==='sell';$('tyw').hidden=true;$('ty').required=false;$('gq').hidden=$('gp').hidden=true;$('q').required=$('pr').required=false;$('lines').hidden=false;
+  $('lr').classList.toggle('buy',!s);
+  $('lnl').textContent=s?'تفاصيل البيع: لكل سطر اختار المخزن اللي بيتسحب منه، واكتب النوع وكميته وسعره وطريقة بيعه':'تفاصيل الشراء: ضيف كل صنف اشتريته في الشحنة دي بكميته وسعره — الخصم والمصروفات بتتوزّع عليهم تلقائيًا';
+  $('la').textContent=s?'+ نوع آخر':'+ صنف آخر';
+  document.querySelectorAll('#lr .lt').forEach(x=>x.setAttribute('aria-label',s?'السحب من مخزون':'الصنف'));
   $('tylbl').textContent=s?'السحب من مخزون':'صنف المكرونة';fillP();pinfo();upd()}
+/* توزيع مبلغ على أسطر بنسبة أوزان — بالقرش، والباقي على آخر سطر */
+function splitAmt(total,w){const W=w.reduce((a,b)=>a+b,0);let acc=0;return w.map((x,i)=>{const v=i===w.length-1?Math.round((total-acc)*100)/100:(W?Math.round(total*x/W*100)/100:0);acc+=v;return v})}
 function sellSubmit(){
   const L=lrows(),tr=+$('tr').value||0,er=m=>{$('err').textContent=m},party=$('p').value.trim(),date=$('d').value;
   if(!L.length)return er('أضف نوعًا واحدًا على الأقل بكميته وسعره.');
@@ -1004,8 +1009,20 @@ function sellSubmit(){
     L.forEach((l,i)=>S.tx.push({id:ids[i],grp:g,no:nn,kind:'sell',date,party,tid:l.tid,grade:l.grade,ch:l.ch,qty:l.qty,price:l.price,disc:gross?disc*l.qty*l.price/gross:0,tr:i===0?tr:0,trn:i===0?$('trn').value.trim():'',paid:v?pd*(l.qty*l.price*(1-(gross?disc/gross:0)))/v:0,pm:$('pm').value,trpm:$('trm').value,note:$('n').value.trim(),due:dueOf(party,date,v-pd),tk:i===0?$('tkt').value.trim():'',dv:i===0?$('drv').value.trim():'',wf:i===0?(+$('wf').value||0):0}))});
   if(r)return er(r);
   autoCt(party,'customer');save();er('');endEdit();$('lr').innerHTML='';lrow();['pd','n','trn','dud','tkt','drv','wf'].forEach(i=>$(i).value='');$('tr').value=0;$('dc').value=0;upd();render()}
+function buySubmit(){
+  const L=lrows(),tr=+$('tr').value||0,er=m=>{$('err').textContent=m},party=$('p').value.trim(),date=$('d').value;
+  if(!L.length)return er('أضف صنفًا واحدًا على الأقل بكميته وسعره.');
+  if(L.some(l=>!S.types.some(t=>t.id===l.tid)))return er('اختار الصنف في كل سطر.');
+  const gross=L.reduce((a,l)=>a+l.qty*l.price,0),disc=+$('dc').value||0;if(disc<0||disc>gross)return er('الخصم لازم يكون بين صفر وإجمالي العملية ('+M(gross)+').');
+  if(!dateOK(date)||(L.some(l=>!l.price)&&!confirm('فيه سطر شراء بسعر صفر — متأكد؟')))return;
+  const v=gross-disc,pd=pdv(v),rep=tedit?tedit.rep:0,ds=splitAmt(disc,L.map(l=>l.qty*l.price)),ts=splitAmt(tr,L.map(l=>l.qty)),ps=splitAmt(pd,L.map((l,i)=>l.qty*l.price-ds[i]));
+  const r=safe(()=>{if(tedit)S.tx=S.tx.filter(x=>!tedit.ids.includes(x.id));const nn=tedit?tedit.no:++S.seq,ids=L.map((l,i)=>i===0&&rep?rep:uid()),g=ids[0];
+    L.forEach((l,i)=>S.tx.push({id:ids[i],grp:g,no:nn,kind:'buy',date,party,tid:l.tid,qty:l.qty,price:l.price,disc:ds[i],tr:ts[i],trn:i===0?$('trn').value.trim():'',paid:ps[i],pm:$('pm').value,trpm:$('trm').value,note:$('n').value.trim(),due:dueOf(party,date,v-pd),tk:i===0?$('tkt').value.trim():'',dv:i===0?$('drv').value.trim():'',wf:i===0?(+$('wf').value||0):0}))});
+  if(r)return er(r);
+  autoCt(party,'factory');save();er('');endEdit();$('lr').innerHTML='';lrow();['pd','n','trn','dud','tkt','drv','wf'].forEach(i=>$(i).value='');$('tr').value=0;$('dc').value=0;upd();render()}
 $('la').onclick=lrow;
 $('lr').onclick=e=>{if(e.target.classList.contains('x')&&$('lr').children.length>1){e.target.parentNode.remove();upd()}};
+$('lr').addEventListener('change',e=>{if(kind!=='buy'||!e.target.classList.contains('lt'))return;const r=e.target.closest('.lrow'),p=r.querySelector('.lp');if(p.value)return;const l=sorted().reverse().find(t=>t.kind==='buy'&&t.tid===+e.target.value);if(l){p.value=l.price;upd()}});
 $('lr').oninput=upd;$('lr').addEventListener('change',upd);$('ty').addEventListener('change',upd);
 document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',applyKind));
 function cinfo(n){const c=S.ct.find(x=>x.name===n);return c?(c.addr?'<br>العنوان: '+esc(c.addr):'')+(c.phone?'<br>تليفون: '+esc(c.phone):''):''}
@@ -1123,9 +1140,8 @@ function startEdit(id){const t=S.tx.find(x=>x.id===id);if(!t)return;if(S.lockDat
   const v=G.reduce((a,x)=>a+V(x),0),pd=G.reduce((a,x)=>a+x.paid,0);
   $('dc').value=Math.round(G.reduce((a,x)=>a+(x.disc||0),0)*100)/100;
   $('pd').value=$('pm').value==='credit'||Math.abs(pd-v)<0.005?'':Math.round(pd*100)/100;
-  $('tr').value=G.reduce((a,x)=>a+x.tr,0);$('trm').value=(G.find(x=>x.tr>0)||t).trpm||'cash';$('trn').value=(G.find(x=>x.trn)||{}).trn||'';$('n').value=t.note||'';$('dud').value=t.due||'';{const sh=G.find(x=>x.tk||x.dv||x.wf)||{};$('tkt').value=sh.tk||'';$('drv').value=sh.dv||'';$('wf').value=sh.wf||''}
-  if(t.kind==='buy'){$('q').value=t.qty;$('pr').value=t.price}
-  else{$('lr').innerHTML='';G.forEach(x=>{lrow();const r=$('lr').lastChild;r.querySelector('.lt').value=x.tid;r.querySelector('.lg').value=x.grade||'';r.querySelector('.lc').value=x.ch||'';r.querySelector('.lq').value=x.qty;r.querySelector('.lp').value=x.price})}
+  $('tr').value=Math.round(G.reduce((a,x)=>a+x.tr,0)*100)/100;$('trm').value=(G.find(x=>x.tr>0)||t).trpm||'cash';$('trn').value=(G.find(x=>x.trn)||{}).trn||'';$('n').value=t.note||'';$('dud').value=t.due||'';{const sh=G.find(x=>x.tk||x.dv||x.wf)||{};$('tkt').value=sh.tk||'';$('drv').value=sh.dv||'';$('wf').value=sh.wf||''}
+  {$('lr').innerHTML='';G.forEach(x=>{lrow();const r=$('lr').lastChild;r.querySelector('.lt').value=x.tid;r.querySelector('.lg').value=x.grade||'';r.querySelector('.lc').value=x.ch||'';r.querySelector('.lq').value=x.qty;r.querySelector('.lp').value=x.price})}
   $('fh').textContent='تعديل العملية رقم '+t.no;$('fs2').textContent='حفظ التعديل';$('ecn').hidden=false;$('err').textContent='';upd();$('f').scrollIntoView({behavior:'smooth'})}
 $('ecn').onclick=()=>{endEdit();$('f').reset();$('d').value=today();$('tr').value=0;$('dc').value=0;$('lr').innerHTML='';lrow();$('pd').disabled=false;upd()};
 
