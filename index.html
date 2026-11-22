@@ -769,7 +769,7 @@ function render(){
   $('th').innerHTML='<tr>'+H.map(([a,b])=>`<th${b?` title="${esc(b)}"`:''}>${a}</th>`).join('')+'</tr>';
   $('tb').innerHTML=rows.length?rows.slice(0,opsLim).map(t=>{const v=V(t),p=pf[t.id],tc=t.tr+(xe[t.id]||0),rem=Math.round((v-t.paid)*100)/100,buy=t.kind==='buy',unit=buy?(t.qty?(v+tc)/t.qty:0):(ca[t.id]||0),
     dtl=(xd[t.id]||[]).map(x=>x.cat+': '+fmt(x.amt)).concat(t.tr?['نقل: '+fmt(t.tr)]:[]).join(' | ');
-    return`<tr><td>${no[t.id]}</td><td>${t.date}</td><td><span class="tag ${buy?'b':'s'}">${t.rt?'مرتجع':t.rtx?'استبدال':buy?'شراء':'بيع'}</span></td><td>${esc(t.party)}${shipSub(t)}</td><td>${esc(t.grade||tn(t.tid))}${t.ch?'<br><small class="sub">'+esc(t.ch)+'</small>':''}</td><td>${fmt(t.qty,3)}</td><td>${M(t.price)}</td><td>${M(v)}${t.disc>0?'<br><small class="sub">بعد خصم '+fmt(t.disc)+'</small>':''}</td><td title="${esc(dtl)}">${tc?M(tc):'—'}${t.tr>0?'<br><small class="sub">من '+PM[t.trpm||'cash']+'</small>':''}${(xd[t.id]||[]).length?' <small class="sub">('+xd[t.id].length+')</small>':''}${t.trn?'<br><small class="sub" style="white-space:normal">'+esc(t.trn)+'</small>':''}</td><td>${M(unit)}</td><td><b>${buy?M(v+tc):M(v-tc)}</b><br><small class="sub">${buy?'تكلفة داخلة المخزون':'صافي بعد المصروفات'}</small></td>${buy?'':`<td class="${p>=0?'pos':'neg'}">${p===undefined?'—':M(p)}</td>`}<td>${M(t.paid)}</td><td class="${rem>0?'neg':''}">${rem>0?M(rem):'مسدّد'}${rem>0&&t.due?'<br><small class="'+(t.due<today()?'neg':'sub')+'">استحقاق '+t.due+(t.due<today()?' — متأخر':'')+'</small>':''}</td><td>${PM[pmOf(t)]}</td><td style="white-space:nowrap"><button class="x" data-inv="${t.id}" title="طباعة فاتورة" aria-label="طباعة فاتورة">🖨</button><button class="x" data-ted="${t.id}" title="تعديل" aria-label="تعديل العملية">✎</button><button class="x" data-del="${t.id}" aria-label="حذف العملية">✕</button></td></tr>`}).join('')+(rows.length>opsLim?`<tr><td colspan="${H.length}" class="empty"><button type="button" class="btn ghost" id="opsmore">عرض المزيد (${Math.min(50,rows.length-opsLim)} أخرى) — معروض ${opsLim} من ${rows.length}</button></td></tr>`:'')
+    return`<tr><td>${no[t.id]}</td><td>${t.date}</td><td><span class="tag ${buy?'b':'s'}">${t.rt?'مرتجع':t.rtx?'استبدال':buy?'شراء':'بيع'}</span></td><td>${esc(t.party)}${shipSub(t)}</td><td>${esc(t.grade||tn(t.tid))}${t.ch?'<br><small class="sub">'+esc(t.ch)+'</small>':''}</td><td>${fmt(t.qty,3)}</td><td>${M(t.price)}</td><td>${M(v)}${t.disc>0?'<br><small class="sub">بعد خصم '+fmt(t.disc)+'</small>':''}</td><td title="${esc(dtl)}">${tc?M(tc):'—'}${t.tr>0?'<br><small class="sub">من '+PM[t.trpm||'cash']+'</small>':''}${(xd[t.id]||[]).length?' <small class="sub">('+xd[t.id].length+')</small>':''}${t.trn?'<br><small class="sub" style="white-space:normal">'+esc(t.trn)+'</small>':''}</td><td>${M(unit)}</td><td><b>${buy?M(v+tc):M(v-tc)}</b><br><small class="sub">${buy?'تكلفة داخلة المخزون':'صافي بعد المصروفات'}</small></td>${buy?'':`<td class="${p>=0?'pos':'neg'}">${p===undefined?'—':M(p)}</td>`}<td>${M(t.paid)}</td><td class="${rem>0?'neg':''}">${rem>0?M(rem):'مسدّد'}${rem>0&&t.due?'<br><small class="'+(t.due<today()?'neg':'sub')+'">استحقاق '+t.due+(t.due<today()?' — متأخر':'')+'</small>':''}</td><td>${PM[pmOf(t)]}</td><td style="white-space:nowrap"><button class="x" data-inv="${t.id}" title="إرسال الفاتورة واتساب" aria-label="إرسال الفاتورة واتساب">💬</button><button class="x" data-invpdf="${t.id}" title="فاتورة PDF" aria-label="فاتورة PDF">📄</button><button class="x" data-ted="${t.id}" title="تعديل" aria-label="تعديل العملية">✎</button><button class="x" data-del="${t.id}" aria-label="حذف العملية">✕</button></td></tr>`}).join('')+(rows.length>opsLim?`<tr><td colspan="${H.length}" class="empty"><button type="button" class="btn ghost" id="opsmore">عرض المزيد (${Math.min(50,rows.length-opsLim)} أخرى) — معروض ${opsLim} من ${rows.length}</button></td></tr>`:'')
    :`<tr><td colspan="${H.length}" class="empty">لا توجد عمليات مطابقة.</td></tr>`;
     renderRest();renderC();renderA(profit,exT,exU);renderS(C0);renderK(F);dbRender(C0);bstat();renderW();renderRT();renderAging();renderLog();renderLock();
 }
@@ -799,14 +799,14 @@ document.addEventListener('click',e=>{const d=e.target.dataset;if(!d)return;
   else if(d.dt){const id=+d.dt;if(S.tx.some(t=>t.tid===id)||S.sr.some(x=>x.src===id||x.outs.some(o=>o.tid===id))||S.adj.some(a=>a.tid===id))alert('الصنف مستخدم في عمليات مسجلة، لا يمكن حذفه.');
     else if(S.types.length<2)alert('لازم يفضل صنف واحد على الأقل.');
     else if(confirm('حذف الصنف؟')){S.types=S.types.filter(t=>t.id!==id);save();render()}}
-  else if(d.inv){const t=S.tx.find(x=>String(x.id)===d.inv),C=calc(),n=C.no[t.id],G=t.grp?S.tx.filter(x=>x.grp===t.grp):[t],v=G.reduce((a,x)=>a+V(x),0),gv=G.reduce((a,x)=>a+x.qty*x.price,0),dsc=gv-v,pdt=G.reduce((a,x)=>a+x.paid,0),trt=G.reduce((a,x)=>a+x.tr+(C.xe[x.id]||0),0),xs=G.flatMap(x=>C.xd[x.id]||[]);
-    $('inv').innerHTML=invHead('فاتورة '+(t.kind==='buy'?'شراء':'بيع')+' رقم '+n)+`
+  else if(d.inv||d.invpdf){const t=S.tx.find(x=>String(x.id)===(d.inv||d.invpdf)),C=calc(),n=C.no[t.id],G=t.grp?S.tx.filter(x=>x.grp===t.grp):[t],v=G.reduce((a,x)=>a+V(x),0),gv=G.reduce((a,x)=>a+x.qty*x.price,0),dsc=gv-v,pdt=G.reduce((a,x)=>a+x.paid,0),trt=G.reduce((a,x)=>a+x.tr+(C.xe[x.id]||0),0),xs=G.flatMap(x=>C.xd[x.id]||[]);
+    const h=invHead('فاتورة '+(t.kind==='buy'?'شراء':'بيع')+' رقم '+n)+`
     <p>التاريخ: ${t.date}<br>${t.kind==='buy'?'المورّد (المصنع)':'العميل'}: ${esc(t.party)}${cinfo(t.party)}</p>
     <table><tr><th>الصنف</th><th>الكمية (طن)</th><th>سعر الطن</th><th>القيمة</th></tr>
     ${G.map(x=>`<tr><td>مكرونة هالك — ${esc(x.grade||tn(x.tid))}${x.ch?' ('+esc(x.ch)+')':''}</td><td>${fmt(x.qty,3)}</td><td>${M(x.price)}</td><td>${M(x.qty*x.price)}</td></tr>`).join('')}</table>
     <p>نقل ومصروفات: ${M(trt)}${xs.length?' <small>('+xs.map(x=>esc(x.cat)+' '+fmt(x.amt)).join('، ')+')</small>':''}${G.some(x=>x.trn)?' <small>('+esc(G.map(x=>x.trn).filter(Boolean).join('، '))+')</small>':''}<br>${dsc>0.004?'الإجمالي قبل الخصم: '+M(gv)+'<br>الخصم: <b>'+M(dsc)+'</b><br>':''}الإجمالي${dsc>0.004?' بعد الخصم':''}: <b>${M(v)}</b><br>${t.kind==='buy'?'الإجمالي بالنقل والمصروفات':'الصافي بعد النقل والمصروفات'}: ${M(t.kind==='buy'?v+trt:v-trt)}<br>المدفوع: ${M(pdt)} (${PM[pmOf(t)]})<br>المتبقي: <b>${M(v-pdt)}</b>${t.due&&v-pdt>0.004?'<br>تاريخ الاستحقاق: '+t.due:''}</p>
     ${(sh=>sh?`<p>${sh.tk?'رقم التذكرة: '+esc(sh.tk)+' ':''}${sh.dv?'• السواق/العربية: '+esc(sh.dv)+' ':''}${sh.wf>0?'• الوزن المسجل: '+fmt(sh.wf,3)+' طن':''}</p>`:'')(G.find(x=>x.tk||x.dv||x.wf))}${t.note?`<p>ملاحظة: ${esc(t.note)}</p>`:''}<div class="iwords">إجمالي الفاتورة بالحروف: ${tafqeet(v)}</div><div class="isig"><span>توقيع ${t.kind==='buy'?'المورّد':'العميل'}</span><span>توقيع المسؤول</span></div>`;
-    window.print()}});
+    invSend(t,G,v,pdt,n,h,e.target,!!d.invpdf)}});
 
 ['fk','ft','fm'].forEach(i=>$(i).onchange=()=>{opsLim=50;render()});$('fs').oninput=()=>{opsLim=50;clearTimeout(_fst);_fst=setTimeout(render,250)};
 document.addEventListener('click',e=>{if(e.target.id==='opsmore'){opsLim+=50;render()}else if(e.target.id==='mvmore'){mvLim+=100;renderS(calc())}});
@@ -1878,6 +1878,27 @@ async function sharePdf(c,btn,txt){const old=btn&&btn.textContent;if(btn){btn.di
   finally{if(btn){btn.disabled=false;btn.textContent=old}}}
 document.addEventListener('click',e=>{const id=e.target.dataset&&e.target.dataset.wapdf;if(!id)return;const c=S.ct.find(x=>String(x.id)===id);if(!c)return;
   const a=(_ag||{})[c.name],inCL=!!e.target.closest('#clb');sharePdf(c,e.target,inCL&&a?clMsg(c,a):null)});
+// ===== إرسال الفاتورة واتساب (بدل الطباعة) =====
+function invMsg(t,G,v,pdt,n){const c=S.ct.find(x=>x.name===t.party),buy=t.kind==='buy',gv=G.reduce((a,x)=>a+x.qty*x.price,0),dsc=gv-v,rem=Math.round((v-pdt)*100)/100;
+  return['السلام عليكم أ/ '+t.party+'،','فاتورة '+(buy?'شراء':'بيع')+' رقم '+n+' — بتاريخ '+t.date+' من KAYAN For Feed:',''].concat(
+    G.map(x=>'• '+(x.grade||tn(x.tid))+(x.ch?' ('+x.ch+')':'')+': '+fmt(x.qty,3)+' طن × '+M(x.price)+' = '+M(x.qty*x.price)),
+    [''],dsc>0.004?['الإجمالي قبل الخصم: '+M(gv),'الخصم: '+M(dsc)]:[],
+    ['الإجمالي'+(dsc>0.004?' بعد الخصم':'')+': '+M(v),'المدفوع: '+M(pdt),'المتبقي: '+(rem>0.005?M(rem):'مسدّد ✅')],
+    t.due&&rem>0.005?['تاريخ الاستحقاق: '+t.due]:[],['','شكرًا لتعاملكم معنا.']).join('\n')}
+async function invSend(t,G,v,pdt,n,h,btn,pdf){const c=S.ct.find(x=>x.name===t.party),ph=c?waPhone(c.phone):'',msg=invMsg(t,G,v,pdt,n);
+  if(!pdf){ // واتساب مباشر على شات العميل
+    if(ph){window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(msg),'_blank','noopener');return}
+    if(navigator.share){try{await navigator.share({text:msg,title:'فاتورة رقم '+n});return}catch(e){if(e&&e.name==='AbortError')return}}
+    try{await navigator.clipboard.writeText(msg)}catch(e){}
+    alert('مفيش رقم تليفون مسجّل لـ «'+t.party+'» — اتنسخت الفاتورة كرسالة وتقدر تبعتها بنفسك. سجّل الرقم من «المصانع والعملاء» عشان يتفتح شات العميل مباشرة.');return}
+  const old=btn&&btn.textContent;if(btn){btn.disabled=true;btn.textContent='⏳'}
+  try{const blob=await pdfBlob(h),name='kayan-invoice-'+n+'-'+today()+'.pdf',file=new File([blob],name,{type:'application/pdf'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],text:msg,title:'فاتورة رقم '+n});return}catch(e){if(e&&e.name==='AbortError')return}}
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+    alert('اتحمّل ملف الفاتورة PDF'+(ph?' — هيتفتح واتساب العميل دلوقتي، ابعت الملف من التحميلات.':' — ابعته للعميل من التحميلات.'));
+    if(ph)window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(msg),'_blank','noopener')}
+  catch(e){alert('مقدرتش أجهّز الـ PDF: '+(e&&e.message||e))}
+  finally{if(btn){btn.disabled=false;btn.textContent=old}}}
 // ===== قايمة الاتصال بالمتأخرين =====
 const clMsg=(c,a)=>c.kind==='factory'?'السلام عليكم أ/ '+c.name+'،\nبخصوص مستحقاتكم لدى KAYAN For Feed: المتبقي '+M(a.open)+' ج.م (منها مستحق السداد '+M(a.over)+' ج.م).\nهنرتب السداد في أقرب وقت. شكرًا لصبركم.':'السلام عليكم أ/ '+c.name+'،\nتذكير ودّي بخصوص المبلغ المتأخر على حضرتك لدى KAYAN For Feed: '+M(a.over)+' ج.م (إجمالي المتبقي '+M(a.open)+' ج.م).\nبرجاء ترتيب السداد في أقرب وقت. شكرًا لتعاملكم.';
 function clRows(){const k=$('clk').value||'customer',sh=$('clsh').checked,t=today();
